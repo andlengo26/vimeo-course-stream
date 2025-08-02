@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { VimeoPlayer } from './VimeoPlayer';
 import { PlaylistSidebar } from './PlaylistSidebar';
+import { ProgressBar } from './ProgressBar';
 import { CompletionScreen } from './CompletionScreen';
 import { vimeoPlaylistConfig, VideoMetadata, PlaylistState, CACHE_KEYS } from '@/config/vimeo-playlist';
 import { VimeoApiService } from '@/services/vimeo-api';
@@ -199,25 +200,25 @@ export const VimeoPlaylist = () => {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background p-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <Skeleton className="w-full aspect-video rounded-lg" />
-              <Skeleton className="h-8 w-3/4 mt-4" />
-            </div>
-            <div className="space-y-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="flex gap-3">
-                  <Skeleton className="w-16 h-10 rounded" />
-                  <div className="flex-1">
-                    <Skeleton className="h-4 w-full mb-2" />
-                    <Skeleton className="h-3 w-1/2" />
-                  </div>
-                </div>
-              ))}
-            </div>
+      <div className="h-screen bg-background flex overflow-hidden">
+        <div className="flex-1 flex flex-col p-4">
+          <div className="flex-1 flex items-center justify-center">
+            <Skeleton className="w-full h-full max-h-[70vh] aspect-video rounded-lg" />
           </div>
+          <div className="pt-4">
+            <Skeleton className="h-8 w-3/4" />
+          </div>
+        </div>
+        <div className="w-80 lg:w-96 p-4 space-y-3">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="flex gap-3">
+              <Skeleton className="w-12 h-8 rounded" />
+              <div className="flex-1">
+                <Skeleton className="h-3 w-full mb-2" />
+                <Skeleton className="h-2 w-1/2" />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -226,7 +227,7 @@ export const VimeoPlaylist = () => {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md text-center p-8">
           <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Failed to Load Playlist</h2>
@@ -243,71 +244,82 @@ export const VimeoPlaylist = () => {
   const currentVideo = videos[playlistState.currentVideoIndex];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto p-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Video Player Area */}
-          <div className="lg:col-span-2">
-            <div className="sticky top-4">
-              {playlistState.showEndScreen ? (
-                <CompletionScreen onRestart={handleRestart} />
-              ) : currentVideo ? (
-                <VimeoPlayer
-                  video={currentVideo}
-                  onVideoEnd={handleVideoEnd}
-                  className="w-full"
-                />
-              ) : (
-                <div className="w-full aspect-video bg-muted rounded-lg flex items-center justify-center">
-                  <p className="text-muted-foreground">No video available</p>
-                </div>
-              )}
-              
-              {/* Video Info */}
-              {!playlistState.showEndScreen && currentVideo && (
-                <div className="mt-4 p-4 bg-card rounded-lg border">
-                  <h1 className="text-xl font-bold mb-2">{vimeoPlaylistConfig.title}</h1>
-                  <p className="text-muted-foreground text-sm">
-                    Video {playlistState.currentVideoIndex + 1} of {videos.length}
-                  </p>
-                  {currentVideo.description && (
-                    <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                      {currentVideo.description}
-                    </p>
-                  )}
-                </div>
-              )}
+    <div className="h-screen lg:h-screen bg-background flex overflow-hidden mobile-video-layout">
+      {/* Main Video Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Video Player */}
+        <div className="flex-1 p-4 flex items-center justify-center video-container">
+          {playlistState.showEndScreen ? (
+            <CompletionScreen onRestart={handleRestart} />
+          ) : currentVideo ? (
+            <VimeoPlayer
+              video={currentVideo}
+              onVideoEnd={handleVideoEnd}
+              isFirstVideo={playlistState.currentVideoIndex === 0}
+              className="w-full h-full max-h-full"
+            />
+          ) : (
+            <div className="w-full aspect-video bg-muted rounded-lg flex items-center justify-center max-h-full">
+              <p className="text-muted-foreground">No video available</p>
             </div>
-          </div>
-
-          {/* Desktop Sidebar */}
-          <div className="hidden lg:block">
-            <div className="sticky top-4">
-              <PlaylistSidebar
-                videos={videos}
-                currentVideoIndex={playlistState.currentVideoIndex}
-                watchedVideos={playlistState.watchedVideos}
-                isOpen={true}
-                onVideoSelect={handleVideoSelect}
-                onToggle={() => {}}
-                className="relative transform-none shadow-none border rounded-lg"
-              />
-            </div>
-          </div>
+          )}
         </div>
+
+        {/* Course Title */}
+        {!playlistState.showEndScreen && currentVideo && (
+          <div className="px-4 pb-4 lg:pb-4">
+            <div className="bg-card rounded-lg border p-3">
+              <h1 className="text-lg font-semibold mb-1">{vimeoPlaylistConfig.title}</h1>
+              <p className="text-muted-foreground text-sm">
+                Video {playlistState.currentVideoIndex + 1} of {videos.length}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Mobile Sidebar */}
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block">
+        {sidebarOpen ? (
+          <PlaylistSidebar
+            videos={videos}
+            currentVideoIndex={playlistState.currentVideoIndex}
+            watchedVideos={playlistState.watchedVideos}
+            isOpen={true}
+            onVideoSelect={handleVideoSelect}
+            onToggle={() => setSidebarOpen(false)}
+            className="relative transform-none shadow-none border-l h-full"
+          />
+        ) : (
+          <ProgressBar
+            videos={videos}
+            currentVideoIndex={playlistState.currentVideoIndex}
+            watchedVideos={playlistState.watchedVideos}
+            onToggleSidebar={() => setSidebarOpen(true)}
+          />
+        )}
+      </div>
+
+      {/* Mobile Sidebar & Progress Bar */}
       <div className="lg:hidden">
-        <PlaylistSidebar
-          videos={videos}
-          currentVideoIndex={playlistState.currentVideoIndex}
-          watchedVideos={playlistState.watchedVideos}
-          isOpen={sidebarOpen}
-          onVideoSelect={handleVideoSelect}
-          onToggle={() => setSidebarOpen(!sidebarOpen)}
-        />
+        {sidebarOpen ? (
+          <PlaylistSidebar
+            videos={videos}
+            currentVideoIndex={playlistState.currentVideoIndex}
+            watchedVideos={playlistState.watchedVideos}
+            isOpen={true}
+            onVideoSelect={handleVideoSelect}
+            onToggle={() => setSidebarOpen(false)}
+          />
+        ) : (
+          <ProgressBar
+            videos={videos}
+            currentVideoIndex={playlistState.currentVideoIndex}
+            watchedVideos={playlistState.watchedVideos}
+            onToggleSidebar={() => setSidebarOpen(true)}
+            className="lg:hidden"
+          />
+        )}
       </div>
     </div>
   );

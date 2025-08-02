@@ -130,3 +130,21 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  /* Responsive video container */
+  .video-container {
+    @apply w-full h-full flex items-center justify-center;
+  }
+  
+  .video-container > div {
+    @apply w-full h-full max-w-full max-h-full;
+  }
+  
+  /* Mobile adjustments */
+  @media (max-width: 1023px) {
+    .mobile-video-layout {
+      @apply h-auto min-h-screen;
+    }
+  }
+}

@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { VideoMetadata } from '@/config/vimeo-playlist';
+import { VideoMetadata, vimeoPlaylistConfig } from '@/config/vimeo-playlist';
 
 interface VimeoPlayerProps {
   video: VideoMetadata;
   onVideoEnd: () => void;
   onReady?: () => void;
+  isFirstVideo?: boolean;
   className?: string;
 }
 
@@ -28,7 +29,7 @@ declare global {
   }
 }
 
-export const VimeoPlayer = ({ video, onVideoEnd, onReady, className = '' }: VimeoPlayerProps) => {
+export const VimeoPlayer = ({ video, onVideoEnd, onReady, isFirstVideo = false, className = '' }: VimeoPlayerProps) => {
   const playerRef = useRef<HTMLDivElement>(null);
   const vimeoPlayerRef = useRef<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -77,6 +78,7 @@ export const VimeoPlayer = ({ video, onVideoEnd, onReady, className = '' }: Vime
         width: '100%',
         height: '100%',
         responsive: true,
+        autoplay: vimeoPlaylistConfig.autoplay && isFirstVideo,
         dnt: true, // Do not track
         title: false,
         byline: false,
@@ -141,13 +143,13 @@ export const VimeoPlayer = ({ video, onVideoEnd, onReady, className = '' }: Vime
       
       <div 
         ref={playerRef} 
-        className="w-full h-full min-h-[300px] lg:min-h-[400px]"
+        className="w-full h-full"
         style={{ aspectRatio: '16/9' }}
       />
       
-      {/* Video title overlay */}
+      {/* Video title overlay - moved to top-left */}
       {!isLoading && (
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+        <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 to-transparent p-4">
           <h2 className="text-white text-lg font-semibold truncate">
             {video.title}
           </h2>

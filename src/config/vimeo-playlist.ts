@@ -3,10 +3,10 @@
 export const vimeoPlaylistConfig = {
   title: 'Course Introduction Videos',
   videoUrls: [
-    'https://vimeo.com/76979871', // Sample Vimeo videos for demo
-    'https://vimeo.com/148751763',
-    'https://vimeo.com/190062231',
-    'https://vimeo.com/287100241'
+    'https://vimeo.com/1099589618', // Sample Vimeo videos for demo
+    'https://vimeo.com/1104353286',
+    'https://vimeo.com/1104353404',
+    'https://vimeo.com/1104353654'
   ],
   continuousPlay: true,
   showEndScreen: true,

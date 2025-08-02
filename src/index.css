@@ -43,7 +43,7 @@
     --success-glow: 142 69% 58%; /* green-500 */
 
     /* Video Interface Specific */
-    --video-player-bg: 226 32% 14%; /* dark slate for video areas */
+    --video-player: 226 32% 14%; /* dark slate for video areas */
     --video-controls: 226 23% 95%;
     --sidebar-bg: 255 255 255;
     --sidebar-hover: 226 23% 97%; /* slate-50 */
@@ -139,6 +139,25 @@
   
   .video-container > div {
     @apply w-full h-full max-w-full max-h-full;
+  }
+  
+  /* Vimeo Player Specific Overrides */
+  .vimeo-player-container {
+    background: hsl(var(--video-player)) !important;
+  }
+
+  .vimeo-player-container iframe {
+    background: hsl(var(--video-player)) !important;
+  }
+
+  /* Remove yellow Vimeo backgrounds */
+  .vimeo-player-container iframe[src*="vimeo.com"] {
+    background: hsl(var(--video-player)) !important;
+  }
+
+  /* Ensure iframe styling */
+  iframe[src*="player.vimeo.com"] {
+    background: hsl(var(--video-player)) !important;
   }
   
   /* Mobile adjustments */

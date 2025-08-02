@@ -24,6 +24,8 @@ export interface VideoMetadata {
   duration: number;
   description?: string;
   videoId: string;
+  width?: number;
+  height?: number;
 }
 
 export interface PlaylistState {

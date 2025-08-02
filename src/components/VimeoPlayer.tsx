@@ -3,6 +3,7 @@ import { VideoMetadata, vimeoPlaylistConfig } from '@/config/vimeo-playlist';
 import { useVideoResize } from '@/hooks/useVideoResize';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
+import { CacheManager } from '@/utils/cache-manager';
 
 interface VimeoPlayerProps {
   video: VideoMetadata;
@@ -37,7 +38,7 @@ export const VimeoPlayer = ({ video, onVideoEnd, onReady, isFirstVideo = false, 
   const vimeoPlayerRef = useRef<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { containerRef, style } = useVideoResize(16/9);
+  const { containerRef, style } = useVideoResize(16/9, video.width, video.height);
 
   // Load Vimeo Player SDK
   useEffect(() => {
@@ -86,7 +87,12 @@ export const VimeoPlayer = ({ video, onVideoEnd, onReady, isFirstVideo = false, 
         dnt: true, // Do not track
         title: false,
         byline: false,
-        portrait: false
+        portrait: false,
+        color: 'ffffff', // Set player controls to white
+        background: false, // Remove Vimeo branding background
+        transparent: false,
+        // Add cache busting parameter
+        t: Date.now()
       });
 
       vimeoPlayerRef.current = player;
@@ -124,6 +130,9 @@ export const VimeoPlayer = ({ video, onVideoEnd, onReady, isFirstVideo = false, 
   const handleRetry = () => {
     setError(null);
     setIsLoading(true);
+    
+    // Clear cache and force reload
+    CacheManager.clearVimeoCache();
     
     // Re-trigger the player initialization
     if (playerRef.current && window.Vimeo && video.videoId) {
@@ -171,8 +180,11 @@ export const VimeoPlayer = ({ video, onVideoEnd, onReady, isFirstVideo = false, 
       
       <div 
         ref={playerRef} 
-        className="w-full"
-        style={style}
+        className="w-full vimeo-player-container"
+        style={{
+          ...style,
+          background: 'var(--video-player)', // Explicit background override
+        }}
       />
       
       {/* Video title overlay - moved to top-left */}

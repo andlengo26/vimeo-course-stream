@@ -7,6 +7,8 @@ interface VimeoOEmbedResponse {
   description: string;
   video_id: number;
   html: string;
+  width: number;
+  height: number;
 }
 
 export class VimeoApiService {
@@ -60,7 +62,9 @@ export class VimeoApiService {
         thumbnail: data.thumbnail_url || '',
         duration: data.duration || 0,
         description: data.description || '',
-        videoId
+        videoId,
+        width: data.width,
+        height: data.height
       };
 
       // Cache the result

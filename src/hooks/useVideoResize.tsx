@@ -6,7 +6,7 @@ interface VideoResizeData {
   aspectRatio: number;
 }
 
-export const useVideoResize = (aspectRatio: number = 16/9) => {
+export const useVideoResize = (aspectRatio: number = 16/9, videoWidth?: number, videoHeight?: number) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState<VideoResizeData>({
     containerHeight: 0,
@@ -20,13 +20,19 @@ export const useVideoResize = (aspectRatio: number = 16/9) => {
 
       const containerWidth = containerRef.current.offsetWidth;
       
+      // Use actual video dimensions if available, otherwise fall back to aspect ratio
+      let calculatedAspectRatio = aspectRatio;
+      if (videoWidth && videoHeight && videoWidth > 0 && videoHeight > 0) {
+        calculatedAspectRatio = videoWidth / videoHeight;
+      }
+      
       // Calculate video height based on aspect ratio and container width
-      const videoHeight = containerWidth / aspectRatio;
+      const calculatedVideoHeight = containerWidth / calculatedAspectRatio;
       
       setDimensions({
-        containerHeight: videoHeight,
-        videoHeight: videoHeight,
-        aspectRatio
+        containerHeight: calculatedVideoHeight,
+        videoHeight: calculatedVideoHeight,
+        aspectRatio: calculatedAspectRatio
       });
     };
 
@@ -40,7 +46,7 @@ export const useVideoResize = (aspectRatio: number = 16/9) => {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [aspectRatio]);
+  }, [aspectRatio, videoWidth, videoHeight]);
 
   return {
     containerRef,

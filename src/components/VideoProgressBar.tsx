@@ -71,8 +71,8 @@ export const VideoProgressBar = ({
               className={cn(
                 "w-10 h-10 p-0 relative group",
                 "transition-all duration-200 ease-smooth",
-                "hover:scale-110 hover:shadow-sm",
-                isActive && "bg-primary/20 border border-primary/30",
+                "hover:scale-110 hover:shadow-sm hover:bg-muted",
+                isActive && "bg-muted border border-border",
                 isWatched && !isActive && "bg-success/10",
                 isUnavailable && "opacity-50 cursor-not-allowed"
               )}
@@ -82,7 +82,7 @@ export const VideoProgressBar = ({
                 {/* Video Icon */}
                 <Video className={cn(
                   "w-4 h-4",
-                  isActive ? "text-primary" : 
+                  isActive ? "text-foreground" : 
                   isWatched ? "text-success" :
                   isUnavailable ? "text-muted-foreground" : "text-sidebar-foreground"
                 )} />
@@ -95,8 +95,8 @@ export const VideoProgressBar = ({
                 )}
                 
                 {isActive && !isWatched && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full flex items-center justify-center">
-                    <Play className="w-1.5 h-1.5 text-primary-foreground" />
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-foreground rounded-full flex items-center justify-center">
+                    <Play className="w-1.5 h-1.5 text-background" />
                   </div>
                 )}
 
@@ -119,18 +119,6 @@ export const VideoProgressBar = ({
         })}
       </div>
 
-      {/* Progress Summary */}
-      <div className="mt-2 text-center">
-        <div className="text-xs font-medium text-sidebar-foreground">
-          {completedCount}
-        </div>
-        <div className="text-xs text-muted-foreground">
-          {totalCount}
-        </div>
-        {completedCount === totalCount && totalCount > 0 && (
-          <Check className="w-4 h-4 text-success mx-auto mt-1" />
-        )}
-      </div>
     </div>
   );
 };

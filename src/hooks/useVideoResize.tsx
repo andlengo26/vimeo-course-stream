@@ -19,25 +19,13 @@ export const useVideoResize = (aspectRatio: number = 16/9) => {
       if (!containerRef.current) return;
 
       const containerWidth = containerRef.current.offsetWidth;
-      const containerHeight = containerRef.current.offsetHeight;
       
-      // Calculate optimal video height based on aspect ratio
-      const videoHeightFromWidth = containerWidth / aspectRatio;
-      const videoWidthFromHeight = containerHeight * aspectRatio;
+      // Calculate video height based on aspect ratio and container width
+      const videoHeight = containerWidth / aspectRatio;
       
-      let finalVideoHeight: number;
-      
-      if (videoHeightFromWidth <= containerHeight) {
-        // Video fits by width
-        finalVideoHeight = videoHeightFromWidth;
-      } else {
-        // Video fits by height
-        finalVideoHeight = containerHeight;
-      }
-
       setDimensions({
-        containerHeight,
-        videoHeight: finalVideoHeight,
+        containerHeight: videoHeight,
+        videoHeight: videoHeight,
         aspectRatio
       });
     };
@@ -59,7 +47,7 @@ export const useVideoResize = (aspectRatio: number = 16/9) => {
     dimensions,
     style: {
       height: `${dimensions.videoHeight}px`,
-      maxHeight: '100%'
+      width: '100%'
     }
   };
 };

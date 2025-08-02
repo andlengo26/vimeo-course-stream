@@ -90,10 +90,10 @@ export const PlaylistSidebar = ({
                   className={cn(
                     "w-full p-3 rounded-md border text-left",
                     "transition-all duration-200 ease-smooth",
-                    "hover:shadow-sm hover:border-primary/50",
-                    "focus:outline-none focus:ring-1 focus:ring-primary focus:ring-offset-1",
-                    isActive && "bg-primary/10 border-primary shadow-glow",
-                    !isActive && "bg-card border-border hover:bg-video-hover",
+                    "hover:shadow-sm hover:border-muted-foreground/30",
+                    "focus:outline-none focus:ring-1 focus:ring-muted-foreground focus:ring-offset-1",
+                    isActive && "bg-muted border-muted-foreground",
+                    !isActive && "bg-card border-border hover:bg-muted/50",
                     isWatched && !isActive && "bg-success/5 border-success/20"
                   )}
                   aria-label={`Play video ${index + 1}: ${video.title}`}
@@ -121,8 +121,8 @@ export const PlaylistSidebar = ({
                             <Check className="w-2.5 h-2.5 text-success-foreground" />
                           </div>
                         ) : isActive ? (
-                          <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center">
-                            <Play className="w-2.5 h-2.5 text-primary-foreground" />
+                          <div className="w-4 h-4 bg-foreground rounded-full flex items-center justify-center">
+                            <Play className="w-2.5 h-2.5 text-background" />
                           </div>
                         ) : null}
                       </div>
@@ -133,7 +133,7 @@ export const PlaylistSidebar = ({
                       <div className="flex items-start justify-between gap-2">
                         <h3 className={cn(
                           "font-medium text-xs leading-tight line-clamp-2",
-                          isActive ? "text-primary" : "text-foreground"
+                          isActive ? "text-foreground font-semibold" : "text-foreground"
                         )}>
                           {video.title}
                         </h3>

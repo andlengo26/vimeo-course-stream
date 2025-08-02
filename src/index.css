@@ -16,10 +16,10 @@
     --popover: 255 255 255;
     --popover-foreground: 226 32% 14%;
 
-    /* Learning Platform Blues/Purples */
-    --primary: 216 98% 52%; /* blue-500 */
-    --primary-foreground: 255 255 255;
-    --primary-glow: 216 87% 65%; /* blue-400 */
+    /* Neutral Color Palette */
+    --primary: 226 23% 95%; /* slate-100 */
+    --primary-foreground: 226 32% 14%; /* slate-800 */
+    --primary-glow: 226 23% 89%; /* slate-200 */
 
     --secondary: 226 71% 14%; /* slate-800 */
     --secondary-foreground: 255 255 255;
@@ -27,8 +27,8 @@
     --muted: 226 23% 95%; /* slate-100 */
     --muted-foreground: 226 13% 44%; /* slate-600 */
 
-    --accent: 263 70% 60%; /* purple-500 */
-    --accent-foreground: 255 255 255;
+    --accent: 226 23% 97%; /* slate-50 */
+    --accent-foreground: 226 32% 14%; /* slate-800 */
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 255 255 255;

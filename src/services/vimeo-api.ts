@@ -31,20 +31,28 @@ export class VimeoApiService {
       return null;
     }
 
+    console.log(`Fetching metadata for video ID: ${videoId}, URL: ${url}`);
+
     // Check cache first
     const cached = this.getCachedMetadata(videoId);
     if (cached) {
+      console.log(`Using cached metadata for video ID: ${videoId}`);
       return cached;
     }
 
     try {
-      const response = await fetch(`${this.OEMBED_BASE_URL}?url=${encodeURIComponent(url)}&width=640&height=360`);
+      const oembedUrl = `${this.OEMBED_BASE_URL}?url=${encodeURIComponent(url)}&width=640&height=360`;
+      console.log(`Fetching from oEmbed API: ${oembedUrl}`);
+      
+      const response = await fetch(oembedUrl);
       
       if (!response.ok) {
+        console.error(`Failed to fetch metadata for ${videoId}: ${response.status} ${response.statusText}`);
         throw new Error(`Failed to fetch metadata: ${response.status}`);
       }
 
       const data: VimeoOEmbedResponse = await response.json();
+      console.log(`Successfully fetched metadata for video ID: ${videoId}`, data);
       
       const metadata: VideoMetadata = {
         url,

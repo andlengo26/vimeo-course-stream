@@ -246,7 +246,7 @@ export const VimeoPlaylist = () => {
   return (
     <div className="h-screen lg:h-screen bg-background flex overflow-hidden mobile-video-layout">
       {/* Main Video Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 pr-16 lg:pr-0">
         {/* Video Player */}
         <div className="flex-1 p-4 flex items-center justify-center video-container">
           {playlistState.showEndScreen ? (

@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export const VimeoPlaylist = () => {
   const { toast } = useToast();
@@ -23,7 +24,8 @@ export const VimeoPlaylist = () => {
     currentVideoIndex: -1, // Start with -1 to indicate no video selected yet
     watchedVideos: new Set(),
     isCompleted: false,
-    showEndScreen: false
+    showEndScreen: false,
+    hasEverCompleted: false
   });
 
   // Initialize Moodle completion service
@@ -84,7 +86,8 @@ export const VimeoPlaylist = () => {
           ...prevState,
           currentVideoIndex: indexToUse,
           watchedVideos: savedProgress.watchedVideos,
-          isCompleted: savedProgress.isCompleted
+          isCompleted: savedProgress.isCompleted,
+          hasEverCompleted: savedProgress.hasEverCompleted
         }));
       }
     }
@@ -140,7 +143,8 @@ export const VimeoPlaylist = () => {
           currentVideoIndex: parsed.currentVideoIndex >= 0 ? parsed.currentVideoIndex : 0,
           watchedVideos: new Set(parsed.watchedVideos || []),
           isCompleted: parsed.isCompleted || false,
-          showEndScreen: parsed.showEndScreen || false
+          showEndScreen: parsed.showEndScreen || false,
+          hasEverCompleted: parsed.hasEverCompleted || false
         };
       }
     } catch (error) {
@@ -151,7 +155,8 @@ export const VimeoPlaylist = () => {
       currentVideoIndex: 0, // Default to first video instead of -1
       watchedVideos: new Set(),
       isCompleted: false,
-      showEndScreen: false
+      showEndScreen: false,
+      hasEverCompleted: false
     };
   };
 
@@ -176,6 +181,9 @@ export const VimeoPlaylist = () => {
       const progress = {
         watchedVideos: Array.from(playlistState.watchedVideos),
         currentVideoIndex: playlistState.currentVideoIndex,
+        isCompleted: playlistState.isCompleted,
+        showEndScreen: playlistState.showEndScreen,
+        hasEverCompleted: playlistState.hasEverCompleted,
         lastUpdated: new Date().toISOString()
       };
       localStorage.setItem(CACHE_KEYS.PROGRESS, JSON.stringify(progress));
@@ -194,12 +202,13 @@ export const VimeoPlaylist = () => {
 
     // Check if all videos are now watched
     const allWatched = videos.every(video => newWatchedVideos.has(video.videoId));
-
+    
     setPlaylistState(prev => ({
       ...prev,
       watchedVideos: newWatchedVideos,
       isCompleted: allWatched,
-      showEndScreen: allWatched && vimeoPlaylistConfig.showEndScreen
+      showEndScreen: allWatched && !prev.hasEverCompleted && vimeoPlaylistConfig.showEndScreen,
+      hasEverCompleted: prev.hasEverCompleted || allWatched
     }));
 
     // Update Moodle progress
@@ -252,12 +261,13 @@ export const VimeoPlaylist = () => {
   }, [videos.length]);
 
   const handleRestart = useCallback(() => {
-    setPlaylistState({
+    setPlaylistState(prev => ({
       currentVideoIndex: 0,
       watchedVideos: new Set(),
       isCompleted: false,
-      showEndScreen: false
-    });
+      showEndScreen: false,
+      hasEverCompleted: prev.hasEverCompleted // Keep the completion flag
+    }));
     
     toast({
       title: "Activity restarted",
@@ -318,7 +328,7 @@ export const VimeoPlaylist = () => {
   return (
     <div className="h-screen lg:h-screen bg-background flex overflow-hidden mobile-video-layout">
       {/* Main Video Area */}
-      <div className="flex-1 flex flex-col min-w-0 pr-16 lg:pr-0">
+      <div className={cn("flex-1 flex flex-col min-w-0", sidebarOpen ? "pr-0" : "pr-16")}>
         {/* Video Player */}
         <div className="flex-1 p-4 flex items-center justify-center video-container">
           {playlistState.showEndScreen ? (

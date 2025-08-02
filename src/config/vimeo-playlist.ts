@@ -33,6 +33,7 @@ export interface PlaylistState {
   watchedVideos: Set<string>;
   isCompleted: boolean;
   showEndScreen: boolean;
+  hasEverCompleted: boolean;
 }
 
 // Cache key for localStorage

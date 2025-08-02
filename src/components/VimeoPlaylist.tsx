@@ -21,7 +21,7 @@ export const VimeoPlaylist = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
   const [playlistState, setPlaylistState] = useState<PlaylistState>({
-    currentVideoIndex: -1, // Start with -1 to indicate no video selected yet
+    currentVideoIndex: 0, // Start with 0 to avoid race conditions
     watchedVideos: new Set(),
     isCompleted: false,
     showEndScreen: false,
@@ -39,14 +39,9 @@ export const VimeoPlaylist = () => {
     }
   }, []);
 
-  // Load playlist metadata
+  // Load playlist metadata and initialize video selection
   useEffect(() => {
     loadPlaylistData();
-  }, []);
-
-  // Load progress from localStorage
-  useEffect(() => {
-    loadProgressState();
   }, []);
 
   // Save progress to localStorage whenever state changes
@@ -54,9 +49,13 @@ export const VimeoPlaylist = () => {
     saveProgress();
   }, [playlistState]);
 
-  // Handle URL parameters and video loading
+  // Consolidated video initialization - handles URL params, saved progress, and video loading
   useEffect(() => {
     if (videos.length > 0) {
+      // Load saved progress first
+      const savedProgress = loadProgress();
+      
+      // Check URL parameters
       const urlParams = new URLSearchParams(window.location.search);
       const videoParam = urlParams.get('video');
       const autoplayParam = urlParams.get('autoplay');
@@ -66,30 +65,29 @@ export const VimeoPlaylist = () => {
         setAutoplay(true);
       }
       
-      // Handle video selection from URL parameter
+      // Determine which video to show
+      let targetVideoIndex = 0;
+      
+      // Priority 1: URL parameter
       if (videoParam) {
-        const videoIndex = parseInt(videoParam) - 1; // URL is 1-indexed
-        if (videoIndex >= 0 && videoIndex < videos.length) {
-          setPlaylistState(prevState => ({
-            ...prevState,
-            currentVideoIndex: videoIndex
-          }));
-          return;
+        const urlIndex = parseInt(videoParam) - 1; // URL is 1-indexed
+        if (urlIndex >= 0 && urlIndex < videos.length) {
+          targetVideoIndex = urlIndex;
         }
+      } else {
+        // Priority 2: Saved progress
+        targetVideoIndex = savedProgress.currentVideoIndex >= 0 ? savedProgress.currentVideoIndex : 0;
       }
       
-      // If no URL parameter and no current video selected, use saved progress or default to first video
-      if (playlistState.currentVideoIndex === -1) {
-        const savedProgress = loadProgress();
-        const indexToUse = savedProgress.currentVideoIndex >= 0 ? savedProgress.currentVideoIndex : 0;
-        setPlaylistState(prevState => ({
-          ...prevState,
-          currentVideoIndex: indexToUse,
-          watchedVideos: savedProgress.watchedVideos,
-          isCompleted: savedProgress.isCompleted,
-          hasEverCompleted: savedProgress.hasEverCompleted
-        }));
-      }
+      // Update state with all saved progress and correct video index
+      setPlaylistState(prevState => ({
+        ...prevState,
+        currentVideoIndex: targetVideoIndex,
+        watchedVideos: savedProgress.watchedVideos,
+        isCompleted: savedProgress.isCompleted,
+        hasEverCompleted: savedProgress.hasEverCompleted,
+        showEndScreen: savedProgress.showEndScreen && savedProgress.isCompleted
+      }));
     }
   }, [videos]);
 
@@ -160,21 +158,6 @@ export const VimeoPlaylist = () => {
     };
   };
 
-  const loadProgressState = () => {
-    try {
-      const saved = localStorage.getItem(CACHE_KEYS.PROGRESS);
-      if (saved) {
-        const progress = JSON.parse(saved);
-        setPlaylistState(prevState => ({
-          ...prevState,
-          watchedVideos: new Set(progress.watchedVideos || []),
-          currentVideoIndex: progress.currentVideoIndex !== undefined ? progress.currentVideoIndex : -1
-        }));
-      }
-    } catch (error) {
-      console.error('Error loading progress:', error);
-    }
-  };
 
   const saveProgress = () => {
     try {

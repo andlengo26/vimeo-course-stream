@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { VimeoPlayer } from './VimeoPlayer';
 import { PlaylistSidebar } from './PlaylistSidebar';
-import { ProgressBar } from './ProgressBar';
+import { VideoProgressBar } from './VideoProgressBar';
 import { CompletionScreen } from './CompletionScreen';
 import { vimeoPlaylistConfig, VideoMetadata, PlaylistState, CACHE_KEYS } from '@/config/vimeo-playlist';
 import { VimeoApiService } from '@/services/vimeo-api';
@@ -158,8 +158,8 @@ export const VimeoPlaylist = () => {
       MoodleCompletionService.markComplete();
       
       toast({
-        title: "Course Complete! 🎉",
-        description: "You have finished all videos in this course.",
+        title: "Activity Complete! 🎉",
+        description: "You have finished all videos in this activity.",
       });
     }
   }, [videos, playlistState, toast]);
@@ -188,7 +188,7 @@ export const VimeoPlaylist = () => {
     });
     
     toast({
-      title: "Course restarted",
+      title: "Activity restarted",
       description: "You can now watch all videos again.",
     });
   }, [toast]);
@@ -265,17 +265,6 @@ export const VimeoPlaylist = () => {
           )}
         </div>
 
-        {/* Course Title */}
-        {!playlistState.showEndScreen && currentVideo && (
-          <div className="px-4 pb-4 lg:pb-4">
-            <div className="bg-card rounded-lg border p-3">
-              <h1 className="text-lg font-semibold mb-1">{vimeoPlaylistConfig.title}</h1>
-              <p className="text-muted-foreground text-sm">
-                Video {playlistState.currentVideoIndex + 1} of {videos.length}
-              </p>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Desktop Sidebar */}
@@ -291,11 +280,12 @@ export const VimeoPlaylist = () => {
             className="relative transform-none shadow-none border-l h-full"
           />
         ) : (
-          <ProgressBar
+          <VideoProgressBar
             videos={videos}
             currentVideoIndex={playlistState.currentVideoIndex}
             watchedVideos={playlistState.watchedVideos}
             onToggleSidebar={() => setSidebarOpen(true)}
+            onVideoSelect={handleVideoSelect}
           />
         )}
       </div>
@@ -312,11 +302,12 @@ export const VimeoPlaylist = () => {
             onToggle={() => setSidebarOpen(false)}
           />
         ) : (
-          <ProgressBar
+          <VideoProgressBar
             videos={videos}
             currentVideoIndex={playlistState.currentVideoIndex}
             watchedVideos={playlistState.watchedVideos}
             onToggleSidebar={() => setSidebarOpen(true)}
+            onVideoSelect={handleVideoSelect}
             className="lg:hidden"
           />
         )}

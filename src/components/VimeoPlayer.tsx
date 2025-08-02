@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { VideoMetadata, vimeoPlaylistConfig } from '@/config/vimeo-playlist';
+import { useVideoResize } from '@/hooks/useVideoResize';
+import { Button } from '@/components/ui/button';
+import { RefreshCw, AlertTriangle } from 'lucide-react';
 
 interface VimeoPlayerProps {
   video: VideoMetadata;
@@ -34,6 +37,7 @@ export const VimeoPlayer = ({ video, onVideoEnd, onReady, isFirstVideo = false, 
   const vimeoPlayerRef = useRef<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { containerRef, style } = useVideoResize(16/9);
 
   // Load Vimeo Player SDK
   useEffect(() => {
@@ -117,21 +121,45 @@ export const VimeoPlayer = ({ video, onVideoEnd, onReady, isFirstVideo = false, 
     };
   }, [video.videoId, onVideoEnd, onReady]);
 
+  const handleRetry = () => {
+    setError(null);
+    setIsLoading(true);
+    
+    // Re-trigger the player initialization
+    if (playerRef.current && window.Vimeo && video.videoId) {
+      // The useEffect will handle re-initialization
+      setIsLoading(true);
+    }
+  };
+
   if (error) {
     return (
-      <div className={`flex items-center justify-center bg-video-player rounded-lg ${className}`}>
-        <div className="text-center p-8">
-          <div className="text-muted-foreground mb-2">⚠️</div>
-          <h3 className="text-lg font-semibold text-card-foreground mb-2">Video Unavailable</h3>
-          <p className="text-muted-foreground text-sm">{error}</p>
-          <p className="text-xs text-muted-foreground mt-2">Video ID: {video.videoId}</p>
+      <div ref={containerRef} className={`flex items-center justify-center bg-video-player rounded-lg ${className}`}>
+        <div className="text-center p-8 max-w-md">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
+              <AlertTriangle className="w-8 h-8 text-destructive" />
+            </div>
+          </div>
+          <h3 className="text-xl font-semibold text-card-foreground mb-3">Video Unavailable</h3>
+          <p className="text-muted-foreground text-sm mb-4">{error}</p>
+          <p className="text-xs text-muted-foreground mb-6">
+            Video ID: {video.videoId} | URL: {video.url}
+          </p>
+          <Button onClick={handleRetry} variant="outline" className="w-full">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Retry Loading
+          </Button>
+          <p className="text-xs text-muted-foreground mt-4">
+            If this issue persists, please contact support or try refreshing the page.
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`relative bg-video-player rounded-lg overflow-hidden shadow-video ${className}`}>
+    <div ref={containerRef} className={`relative bg-video-player rounded-lg overflow-hidden shadow-video ${className}`}>
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-video-player z-10">
           <div className="text-center">
@@ -143,8 +171,8 @@ export const VimeoPlayer = ({ video, onVideoEnd, onReady, isFirstVideo = false, 
       
       <div 
         ref={playerRef} 
-        className="w-full h-full"
-        style={{ aspectRatio: '16/9' }}
+        className="w-full"
+        style={style}
       />
       
       {/* Video title overlay - moved to top-left */}

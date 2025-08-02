@@ -1,7 +1,7 @@
 // Vimeo Playlist Configuration
 // Update this configuration object to modify playlist settings
 export const vimeoPlaylistConfig = {
-  title: 'Course Introduction Videos',
+  title: 'Activity Introduction Videos',
   videoUrls: [
     'https://vimeo.com/1099589618', // Sample Vimeo videos for demo
     'https://vimeo.com/1104353286',

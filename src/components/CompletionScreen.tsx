@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Trophy, RotateCcw, Download } from 'lucide-react';
+import { Trophy, RotateCcw, Download, Check } from 'lucide-react';
 
 interface CompletionScreenProps {
   onRestart: () => void;
@@ -25,15 +25,12 @@ export const CompletionScreen = ({
 
         {/* Congratulations Message */}
         <h2 className="text-2xl font-bold text-foreground mb-4">
-          Congratulations! 🎉
+          <Check className="w-6 h-6 inline mr-2 text-success" />
+          Congratulations!
         </h2>
         
-        <p className="text-muted-foreground mb-2">
-          You have successfully completed all videos in this course.
-        </p>
-        
-        <p className="text-sm text-muted-foreground mb-8">
-          Great job on finishing your learning journey!
+        <p className="text-muted-foreground mb-8">
+          You have successfully completed all videos in this activity. You may replay any video or click the Next Activity button to continue.
         </p>
 
         {/* Action Buttons */}

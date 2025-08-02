@@ -2,7 +2,7 @@ import { VideoMetadata } from '@/config/vimeo-playlist';
 import { VimeoApiService } from '@/services/vimeo-api';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Check, Play, Clock, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Check, Play, Clock, X } from 'lucide-react';
 
 interface PlaylistSidebarProps {
   videos: VideoMetadata[];
@@ -29,20 +29,6 @@ export const PlaylistSidebar = ({
 
   return (
     <>
-      {/* Toggle Button */}
-      <Button
-        onClick={onToggle}
-        variant="ghost"
-        size="sm"
-        className={cn(
-          "fixed top-3 right-3 z-50 w-8 h-8 p-0 shadow-sm",
-          "transition-all duration-300 ease-smooth",
-          isOpen && "right-80 lg:right-96"
-        )}
-        aria-label={isOpen ? "Close playlist" : "Open playlist"}
-      >
-        {isOpen ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-      </Button>
 
       {/* Sidebar Panel */}
       <div
@@ -55,8 +41,19 @@ export const PlaylistSidebar = ({
         )}
       >
         {/* Header */}
-        <div className="p-4 border-b border-border bg-gradient-subtle">
-          <h2 className="text-lg font-semibold text-foreground mb-3">Course Videos</h2>
+        <div className="p-4 border-b border-border bg-gradient-subtle relative">
+          {/* Close Button */}
+          <Button
+            onClick={onToggle}
+            variant="ghost"
+            size="sm"
+            className="absolute top-3 right-3 w-8 h-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+            aria-label="Close playlist"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+          
+          <h2 className="text-lg font-semibold text-foreground mb-3 pr-10">Course Videos</h2>
           
           {/* Progress Bar */}
           <div className="space-y-2">
@@ -162,7 +159,7 @@ export const PlaylistSidebar = ({
         {/* Footer */}
         <div className="p-3 border-t border-border bg-muted/30">
           <p className="text-xs text-muted-foreground text-center">
-            Complete all videos to finish the course
+            Complete all videos to finish this activity
           </p>
         </div>
       </div>

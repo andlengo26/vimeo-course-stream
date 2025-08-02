@@ -6,8 +6,7 @@ export const vimeoPlaylistConfig = {
     'https://vimeo.com/1099589618', // Sample Vimeo videos for demo
     'https://vimeo.com/1104353286',
     'https://vimeo.com/1104353404',
-    'https://vimeo.com/1104353654',
-    'https://vimeo.com/1104353713'
+    'https://vimeo.com/1104353654'
   ],
   continuousPlay: true,
   showEndScreen: true,

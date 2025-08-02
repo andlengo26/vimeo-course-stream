@@ -20,7 +20,7 @@ export const VimeoPlaylist = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
   const [playlistState, setPlaylistState] = useState<PlaylistState>({
-    currentVideoIndex: 0,
+    currentVideoIndex: -1, // Start with -1 to indicate no video selected yet
     watchedVideos: new Set(),
     isCompleted: false,
     showEndScreen: false
@@ -51,6 +51,16 @@ export const VimeoPlaylist = () => {
   useEffect(() => {
     saveProgress();
   }, [playlistState]);
+
+  // Auto-select first video when videos are loaded and no current video is set
+  useEffect(() => {
+    if (videos.length > 0 && playlistState.currentVideoIndex === -1) {
+      setPlaylistState(prevState => ({
+        ...prevState,
+        currentVideoIndex: 0
+      }));
+    }
+  }, [videos, playlistState.currentVideoIndex]);
 
   const loadPlaylistData = async () => {
     try {
@@ -98,7 +108,7 @@ export const VimeoPlaylist = () => {
         setPlaylistState(prevState => ({
           ...prevState,
           watchedVideos: new Set(progress.watchedVideos || []),
-          currentVideoIndex: progress.currentVideoIndex || 0
+          currentVideoIndex: progress.currentVideoIndex !== undefined ? progress.currentVideoIndex : -1
         }));
       }
     } catch (error) {
@@ -241,7 +251,7 @@ export const VimeoPlaylist = () => {
     );
   }
 
-  const currentVideo = videos[playlistState.currentVideoIndex];
+  const currentVideo = playlistState.currentVideoIndex >= 0 ? videos[playlistState.currentVideoIndex] : null;
 
   return (
     <div className="h-screen lg:h-screen bg-background flex overflow-hidden mobile-video-layout">

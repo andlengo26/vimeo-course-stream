@@ -55,7 +55,7 @@ export const VideoProgressBar = ({
       </Button>
 
       {/* Vertical Video Icons */}
-      <div className="flex-1 flex flex-col items-center justify-start gap-2 py-2">
+      <div className="flex-1 flex flex-col items-center justify-start gap-2 overflow-y-auto py-2">
         {videos.map((video, index) => {
           const isActive = index === currentVideoIndex;
           const isWatched = watchedVideos.has(video.videoId);

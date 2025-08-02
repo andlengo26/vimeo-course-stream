@@ -44,7 +44,7 @@ export const VimeoPlaylist = () => {
 
   // Load progress from localStorage
   useEffect(() => {
-    loadProgress();
+    loadProgressState();
   }, []);
 
   // Save progress to localStorage whenever state changes
@@ -52,19 +52,46 @@ export const VimeoPlaylist = () => {
     saveProgress();
   }, [playlistState]);
 
-  // Auto-select first video only if no saved progress exists
+  // Handle URL parameters and video loading
   useEffect(() => {
-    if (videos.length > 0 && playlistState.currentVideoIndex === -1) {
-      // Only auto-select if there's no saved progress
-      const saved = localStorage.getItem(CACHE_KEYS.PROGRESS);
-      if (!saved) {
+    if (videos.length > 0) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const videoParam = urlParams.get('video');
+      const autoplayParam = urlParams.get('autoplay');
+      
+      // Set autoplay preference from URL
+      if (autoplayParam === 'true') {
+        setAutoplay(true);
+      }
+      
+      // Handle video selection from URL parameter
+      if (videoParam) {
+        const videoIndex = parseInt(videoParam) - 1; // URL is 1-indexed
+        if (videoIndex >= 0 && videoIndex < videos.length) {
+          setPlaylistState(prevState => ({
+            ...prevState,
+            currentVideoIndex: videoIndex
+          }));
+          return;
+        }
+      }
+      
+      // If no URL parameter and no current video selected, use saved progress or default to first video
+      if (playlistState.currentVideoIndex === -1) {
+        const savedProgress = loadProgress();
+        const indexToUse = savedProgress.currentVideoIndex >= 0 ? savedProgress.currentVideoIndex : 0;
         setPlaylistState(prevState => ({
           ...prevState,
-          currentVideoIndex: 0
+          currentVideoIndex: indexToUse,
+          watchedVideos: savedProgress.watchedVideos,
+          isCompleted: savedProgress.isCompleted
         }));
       }
     }
-  }, [videos, playlistState.currentVideoIndex]);
+  }, [videos]);
+
+  // State for autoplay preference
+  const [autoplay, setAutoplay] = useState(vimeoPlaylistConfig.autoplay);
 
   const loadPlaylistData = async () => {
     try {
@@ -104,7 +131,31 @@ export const VimeoPlaylist = () => {
     }
   };
 
-  const loadProgress = () => {
+  const loadProgress = (): PlaylistState => {
+    try {
+      const saved = localStorage.getItem(CACHE_KEYS.PROGRESS);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          currentVideoIndex: parsed.currentVideoIndex >= 0 ? parsed.currentVideoIndex : 0,
+          watchedVideos: new Set(parsed.watchedVideos || []),
+          isCompleted: parsed.isCompleted || false,
+          showEndScreen: parsed.showEndScreen || false
+        };
+      }
+    } catch (error) {
+      console.error('Error loading progress:', error);
+    }
+    
+    return {
+      currentVideoIndex: 0, // Default to first video instead of -1
+      watchedVideos: new Set(),
+      isCompleted: false,
+      showEndScreen: false
+    };
+  };
+
+  const loadProgressState = () => {
     try {
       const saved = localStorage.getItem(CACHE_KEYS.PROGRESS);
       if (saved) {
@@ -185,6 +236,13 @@ export const VimeoPlaylist = () => {
         currentVideoIndex: index,
         showEndScreen: false
       }));
+      
+      // Update URL parameter when video is selected
+      const url = new URL(window.location.href);
+      url.searchParams.set('video', (index + 1).toString());
+      window.history.replaceState({}, '', url.toString());
+      // Enable autoplay for manually selected videos
+      setAutoplay(true);
       
       // Close sidebar on mobile after selection
       if (window.innerWidth < 1024) {
@@ -270,6 +328,7 @@ export const VimeoPlaylist = () => {
               video={currentVideo}
               onVideoEnd={handleVideoEnd}
               isFirstVideo={playlistState.currentVideoIndex === 0}
+              autoplay={autoplay}
               className="w-full h-full max-h-full"
             />
           ) : (

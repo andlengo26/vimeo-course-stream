@@ -10,6 +10,7 @@ interface VimeoPlayerProps {
   onVideoEnd: () => void;
   onReady?: () => void;
   isFirstVideo?: boolean;
+  autoplay?: boolean;
   className?: string;
 }
 
@@ -33,7 +34,7 @@ declare global {
   }
 }
 
-export const VimeoPlayer = ({ video, onVideoEnd, onReady, isFirstVideo = false, className = '' }: VimeoPlayerProps) => {
+export const VimeoPlayer = ({ video, onVideoEnd, onReady, isFirstVideo = false, autoplay = false, className = '' }: VimeoPlayerProps) => {
   const playerRef = useRef<HTMLDivElement>(null);
   const vimeoPlayerRef = useRef<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,7 +84,7 @@ export const VimeoPlayer = ({ video, onVideoEnd, onReady, isFirstVideo = false, 
         width: '100%',
         height: '100%',
         responsive: true,
-        autoplay: vimeoPlaylistConfig.autoplay && isFirstVideo,
+        autoplay: autoplay,
         dnt: true, // Do not track
         title: false,
         byline: false,

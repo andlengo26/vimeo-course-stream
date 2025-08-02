@@ -9,7 +9,7 @@ export const vimeoPlaylistConfig = {
     'https://vimeo.com/1104353654'
   ],
   continuousPlay: true,
-  autoplay: false, // Whether to automatically start playing the first video
+  autoplay: true, // Whether to automatically start playing videos
   showEndScreen: true,
   // Optional: Moodle integration settings
   moodleActivityId: null, // Set this for Moodle completion tracking

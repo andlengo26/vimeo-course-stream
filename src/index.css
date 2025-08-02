@@ -2,41 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Vimeo Playlist Design System - Modern Educational Interface */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Educational Color Palette */
+    --background: 248 250 252; /* slate-50 */
+    --foreground: 226 32% 14%; /* slate-800 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 255 255 255; /* white */
+    --card-foreground: 226 32% 14%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 255 255 255;
+    --popover-foreground: 226 32% 14%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Learning Platform Blues/Purples */
+    --primary: 216 98% 52%; /* blue-500 */
+    --primary-foreground: 255 255 255;
+    --primary-glow: 216 87% 65%; /* blue-400 */
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 226 71% 14%; /* slate-800 */
+    --secondary-foreground: 255 255 255;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 226 23% 95%; /* slate-100 */
+    --muted-foreground: 226 13% 44%; /* slate-600 */
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 263 70% 60%; /* purple-500 */
+    --accent-foreground: 255 255 255;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 255 255 255;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 226 23% 89%; /* slate-200 */
+    --input: 226 23% 89%;
+    --ring: 216 98% 52%;
 
-    --radius: 0.5rem;
+    /* Success/Progress Colors */
+    --success: 142 71% 45%; /* green-600 */
+    --success-foreground: 255 255 255;
+    --success-glow: 142 69% 58%; /* green-500 */
+
+    /* Video Interface Specific */
+    --video-player-bg: 226 32% 14%; /* dark slate for video areas */
+    --video-controls: 226 23% 95%;
+    --sidebar-bg: 255 255 255;
+    --sidebar-hover: 226 23% 97%; /* slate-50 */
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--primary)));
+    --gradient-success: linear-gradient(135deg, hsl(var(--success)), hsl(var(--success-glow)));
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted)));
+
+    /* Shadows */
+    --shadow-elegant: 0 10px 25px -5px hsl(226 32% 14% / 0.1), 0 4px 6px -2px hsl(226 32% 14% / 0.05);
+    --shadow-video: 0 25px 50px -12px hsl(226 32% 14% / 0.25);
+    --shadow-glow: 0 0 30px hsl(var(--primary) / 0.2);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
 

@@ -52,13 +52,17 @@ export const VimeoPlaylist = () => {
     saveProgress();
   }, [playlistState]);
 
-  // Auto-select first video when videos are loaded and no current video is set
+  // Auto-select first video only if no saved progress exists
   useEffect(() => {
     if (videos.length > 0 && playlistState.currentVideoIndex === -1) {
-      setPlaylistState(prevState => ({
-        ...prevState,
-        currentVideoIndex: 0
-      }));
+      // Only auto-select if there's no saved progress
+      const saved = localStorage.getItem(CACHE_KEYS.PROGRESS);
+      if (!saved) {
+        setPlaylistState(prevState => ({
+          ...prevState,
+          currentVideoIndex: 0
+        }));
+      }
     }
   }, [videos, playlistState.currentVideoIndex]);
 

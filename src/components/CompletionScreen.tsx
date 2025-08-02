@@ -35,15 +35,6 @@ export const CompletionScreen = ({
 
         {/* Action Buttons */}
         <div className="space-y-3">
-          <Button 
-            onClick={onRestart}
-            variant="outline"
-            className="w-full"
-          >
-            <RotateCcw className="w-4 h-4 mr-2" />
-            Watch Again
-          </Button>
-          
           {onDownloadCertificate && (
             <Button 
               onClick={onDownloadCertificate}

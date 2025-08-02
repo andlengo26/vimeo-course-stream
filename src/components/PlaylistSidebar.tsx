@@ -77,7 +77,7 @@ export const PlaylistSidebar = ({
         </div>
 
         {/* Video List */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1">
           <div className="p-3 space-y-1.5">
             {videos.map((video, index) => {
               const isActive = index === currentVideoIndex;

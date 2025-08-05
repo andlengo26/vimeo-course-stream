@@ -180,8 +180,20 @@ function xmldb_eljwplayer_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2025080503, 'eljwplayer');
     }
 
+    // Change videosource field type from TEXT to CHAR to allow direct comparisons
+    if ($oldversion < 2025080504) {
+        $table = new xmldb_table('eljwplayer');
+        $field = new xmldb_field('videosource', XMLDB_TYPE_CHAR, '20', null, null, null, null);
+        
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->change_field_type($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2025080504, 'eljwplayer');
+    }
+
     // Fix form validation and parameter structure
-    if ($oldversion < 2025080505) {
+    if ($oldversion < 2025080506) {
         // Ensure all Vimeo instances have proper vimeo_urls field set
         $records = $DB->get_records('eljwplayer', ['videosource' => 'vimeo']);
         foreach ($records as $record) {
@@ -195,7 +207,7 @@ function xmldb_eljwplayer_upgrade($oldversion) {
             }
         }
 
-        upgrade_mod_savepoint(true, 2025080505, 'eljwplayer');
+        upgrade_mod_savepoint(true, 2025080506, 'eljwplayer');
     }
 
     return true;

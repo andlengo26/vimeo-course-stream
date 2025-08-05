@@ -15,18 +15,16 @@ export const init = () => {
         const jwplayerplaylists = document.querySelector('#jwplayerplaylistselect');
         jwplayerplaylists.addEventListener('change', (event) => {
             const playlist_id = jwplayerplaylists.value;
-            console.log(playlist_id);
             Ajax.call([{
                 methodname: 'mod_eljwplayer_get_jwplayermedia',
                 args: {
                     playlist_id: playlist_id
                 },
                 done: (data) => {
-                    console.log(data);
-                    //jwplayermedia
+                    // Media data received
                 },
                 fail: (data) => {
-                    console.log(data);
+                    // Silent fail for media retrieval
                 }
             }]);
         });

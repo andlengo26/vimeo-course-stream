@@ -10,11 +10,10 @@ export const init = (eljwplayer_id, isplaylist) => {
                     eljwplayerid: eljwplayer_id
                 },
                 done: (data) => {
-                    console.log(data);
-                    //jwplayermedia
+                    // Activity completion tracked
                 },
                 fail: (data) => {
-                    console.log(data);
+                    // Silent fail for completion tracking
                 }
             }]);
         });
@@ -26,11 +25,10 @@ export const init = (eljwplayer_id, isplaylist) => {
                     eljwplayerid: eljwplayer_id
                 },
                 done: (data) => {
-                    console.log(data);
-                    //jwplayermedia
+                    // Activity completion tracked
                 },
                 fail: (data) => {
-                    console.log(data);
+                    // Silent fail for completion tracking
                 }
             }]);
         });

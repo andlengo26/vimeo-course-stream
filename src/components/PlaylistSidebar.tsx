@@ -1,9 +1,8 @@
-
 import { VideoMetadata } from '@/config/vimeo-playlist';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { X, List, Check } from 'lucide-react';
+import { VimeoApiService } from '@/services/vimeo-api';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Check, Play, Clock, X } from 'lucide-react';
 
 interface PlaylistSidebarProps {
   videos: VideoMetadata[];
@@ -22,65 +21,157 @@ export const PlaylistSidebar = ({
   isOpen,
   onVideoSelect,
   onToggle,
-  className
+  className = ''
 }: PlaylistSidebarProps) => {
+  const completedCount = watchedVideos.size;
+  const totalCount = videos.length;
+  const progressPercent = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+
   return (
-    <div className={cn(
-      "fixed inset-y-0 right-0 w-80 lg:w-96 bg-background border-l shadow-lg transform transition-transform duration-300 z-50",
-      isOpen ? "translate-x-0" : "translate-x-full",
-      "lg:relative lg:translate-x-0 lg:shadow-none",
-      className
-    )}>
-      <div className="h-full flex flex-col">
-        <div className="p-4 border-b flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <List className="w-5 h-5" />
-            <h2 className="font-semibold">Playlist</h2>
-          </div>
+    <>
+
+      {/* Sidebar Panel */}
+      <div
+        className={cn(
+          "fixed top-0 right-0 h-screen w-80 lg:w-96 bg-sidebar border-l border-sidebar-border",
+          "transform transition-transform duration-300 ease-smooth shadow-elegant z-40",
+          "flex flex-col",
+          isOpen ? "translate-x-0" : "translate-x-full",
+          className
+        )}
+      >
+        {/* Header */}
+        <div className="p-4 border-b border-border bg-gradient-subtle relative">
+          {/* Close Button */}
           <Button
+            onClick={onToggle}
             variant="ghost"
             size="sm"
-            onClick={onToggle}
-            className="lg:hidden"
+            className="absolute top-3 right-3 w-8 h-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+            aria-label="Close playlist"
           >
             <X className="w-4 h-4" />
           </Button>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {videos.map((video, index) => (
-            <Card
-              key={video.videoId}
-              className={cn(
-                "p-3 cursor-pointer transition-colors hover:bg-muted/50",
-                currentVideoIndex === index && "ring-2 ring-primary bg-primary/5"
-              )}
-              onClick={() => onVideoSelect(index)}
-            >
-              <div className="flex items-start gap-3">
-                <div className="relative flex-shrink-0">
-                  <div className="w-12 h-8 bg-muted rounded flex items-center justify-center text-xs font-medium">
-                    {index + 1}
-                  </div>
-                  {watchedVideos.has(video.videoId) && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                      <Check className="w-2 h-2 text-white" />
-                    </div>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-medium line-clamp-2 mb-1">
-                    {video.title}
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    {video.duration ? `${Math.floor(video.duration / 60)}:${(video.duration % 60).toString().padStart(2, '0')}` : 'Duration unknown'}
-                  </p>
-                </div>
+          
+          <h2 className="text-lg font-semibold text-foreground mb-3 pr-10">Course Videos</h2>
+          
+          {/* Progress Bar */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{completedCount} of {totalCount}</span>
+              <span>{Math.round(progressPercent)}%</span>
+            </div>
+            <div className="w-full bg-muted rounded-full h-1.5">
+              <div
+                className="bg-gradient-success h-1.5 rounded-full transition-all duration-500 ease-smooth"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            {progressPercent === 100 && (
+              <div className="text-success text-xs font-medium flex items-center gap-1 justify-center">
+                <Check className="w-3 h-3" />
+                Complete!
               </div>
-            </Card>
-          ))}
+            )}
+          </div>
+        </div>
+
+        {/* Video List */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-3 space-y-1.5">
+            {videos.map((video, index) => {
+              const isActive = index === currentVideoIndex;
+              const isWatched = watchedVideos.has(video.videoId);
+              
+              return (
+                <button
+                  key={video.videoId}
+                  onClick={() => onVideoSelect(index)}
+                  className={cn(
+                    "w-full p-3 rounded-md border text-left",
+                    "transition-all duration-200 ease-smooth",
+                    "hover:shadow-sm hover:border-muted-foreground/30",
+                    "focus:outline-none focus:ring-1 focus:ring-muted-foreground focus:ring-offset-1",
+                    isActive && "bg-muted border-muted-foreground",
+                    !isActive && "bg-card border-border hover:bg-muted/50",
+                    isWatched && !isActive && "bg-success/5 border-success/20"
+                  )}
+                  aria-label={`Play video ${index + 1}: ${video.title}`}
+                >
+                  <div className="flex items-start gap-2.5">
+                    {/* Thumbnail */}
+                    <div className="relative flex-shrink-0">
+                      {video.thumbnail ? (
+                        <img
+                          src={video.thumbnail}
+                          alt={`Thumbnail for ${video.title}`}
+                          className="w-12 h-8 object-cover rounded bg-muted"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-12 h-8 bg-muted rounded flex items-center justify-center">
+                          <Play className="w-3 h-3 text-muted-foreground" />
+                        </div>
+                      )}
+                      
+                      {/* Status Indicator */}
+                      <div className="absolute -top-0.5 -right-0.5">
+                        {isWatched ? (
+                          <div className="w-4 h-4 bg-success rounded-full flex items-center justify-center">
+                            <Check className="w-2.5 h-2.5 text-success-foreground" />
+                          </div>
+                        ) : isActive ? (
+                          <div className="w-4 h-4 bg-foreground rounded-full flex items-center justify-center">
+                            <Play className="w-2.5 h-2.5 text-background" />
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className={cn(
+                          "font-medium text-xs leading-tight line-clamp-2",
+                          isActive ? "text-foreground font-semibold" : "text-foreground"
+                        )}>
+                          {video.title}
+                        </h3>
+                        <span className="text-xs text-muted-foreground font-mono flex-shrink-0 mt-0.5">
+                          {index + 1}
+                        </span>
+                      </div>
+                      
+                      {video.duration > 0 && (
+                        <div className="flex items-center gap-1 mt-1.5 text-xs text-muted-foreground">
+                          <Clock className="w-3 h-3" />
+                          {VimeoApiService.formatDuration(video.duration)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-3 border-t border-border bg-muted/30">
+          <p className="text-xs text-muted-foreground text-center">
+            Complete all videos to finish this activity
+          </p>
         </div>
       </div>
-    </div>
+
+      {/* Backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={onToggle}
+          aria-hidden="true"
+        />
+      )}
+    </>
   );
 };

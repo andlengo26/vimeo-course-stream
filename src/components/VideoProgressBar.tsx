@@ -1,8 +1,8 @@
-
 import { VideoMetadata } from '@/config/vimeo-playlist';
 import { Button } from '@/components/ui/button';
-import { List, Check } from 'lucide-react';
+import { Check, List, Play, Video } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface VideoProgressBarProps {
   videos: VideoMetadata[];
@@ -19,56 +19,106 @@ export const VideoProgressBar = ({
   watchedVideos,
   onToggleSidebar,
   onVideoSelect,
-  className
+  className = ''
 }: VideoProgressBarProps) => {
-  const completedCount = videos.filter(video => watchedVideos.has(video.videoId)).length;
-  const progressPercentage = videos.length > 0 ? (completedCount / videos.length) * 100 : 0;
+  const { toast } = useToast();
+  const completedCount = watchedVideos.size;
+  const totalCount = videos.length;
+
+  const handleVideoClick = (index: number, video: VideoMetadata) => {
+    if (video.videoId === 'unknown' || video.title === 'Video Unavailable') {
+      toast({
+        title: "Video Unavailable",
+        description: "This video could not be loaded. Please try refreshing the page or contact support.",
+        variant: "destructive"
+      });
+      return;
+    }
+    onVideoSelect(index);
+  };
 
   return (
-    <div className={cn("fixed right-0 top-0 bottom-0 w-16 bg-background border-l flex flex-col items-center py-4", className)}>
+    <div className={cn(
+      "fixed top-0 right-0 h-full w-16 bg-sidebar border-l border-sidebar-border",
+      "flex flex-col items-center py-3 z-40 shadow-elegant",
+      className
+    )}>
+      {/* Sidebar Toggle Button */}
       <Button
+        onClick={onToggleSidebar}
         variant="ghost"
         size="sm"
-        onClick={onToggleSidebar}
-        className="mb-4"
+        className="w-10 h-10 p-0 mb-4 hover:bg-sidebar-accent rounded-lg"
+        aria-label="Open playlist"
       >
-        <List className="w-4 h-4" />
+        <List className="w-5 h-5" />
       </Button>
-      
-      <div className="flex-1 flex flex-col items-center gap-2 overflow-y-auto">
-        {videos.map((video, index) => (
-          <Button
-            key={video.videoId}
-            variant="ghost"
-            size="sm"
-            className={cn(
-              "w-8 h-8 p-0 rounded-full relative",
-              currentVideoIndex === index && "bg-primary text-primary-foreground",
-              watchedVideos.has(video.videoId) && currentVideoIndex !== index && "bg-green-100 text-green-700"
-            )}
-            onClick={() => onVideoSelect(index)}
-          >
-            <span className="text-xs font-medium">{index + 1}</span>
-            {watchedVideos.has(video.videoId) && (
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
-                <Check className="w-2 h-2 text-white" />
+
+      {/* Vertical Video Icons */}
+      <div className="flex-1 flex flex-col items-center justify-start gap-2 overflow-y-auto py-2">
+        {videos.map((video, index) => {
+          const isActive = index === currentVideoIndex;
+          const isWatched = watchedVideos.has(video.videoId);
+          const isUnavailable = video.videoId === 'unknown' || video.title === 'Video Unavailable';
+          
+          return (
+            <Button
+              key={video.videoId || index}
+              onClick={() => handleVideoClick(index, video)}
+              variant="ghost"
+              size="sm"
+              disabled={isUnavailable}
+              className={cn(
+                "w-10 h-10 p-0 relative group",
+                "transition-all duration-200 ease-smooth",
+                "hover:scale-110 hover:shadow-sm hover:bg-muted",
+                isActive && "bg-muted border border-border",
+                isWatched && !isActive && "bg-success/10",
+                isUnavailable && "opacity-50 cursor-not-allowed"
+              )}
+              aria-label={`Video ${index + 1}: ${video.title}${isWatched ? ' (completed)' : ''}${isUnavailable ? ' (unavailable)' : ''}`}
+            >
+              <div className="relative">
+                {/* Video Icon */}
+                <Video className={cn(
+                  "w-4 h-4",
+                  isActive ? "text-foreground" : 
+                  isWatched ? "text-success" :
+                  isUnavailable ? "text-muted-foreground" : "text-sidebar-foreground"
+                )} />
+                
+                {/* Status Indicator */}
+                {isWatched && (
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-success rounded-full flex items-center justify-center">
+                    <Check className="w-2 h-2 text-success-foreground" />
+                  </div>
+                )}
+                
+                {isActive && !isWatched && (
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-foreground rounded-full flex items-center justify-center">
+                    <Play className="w-1.5 h-1.5 text-background" />
+                  </div>
+                )}
+
+                {/* Error indicator for unavailable videos */}
+                {isUnavailable && (
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full flex items-center justify-center">
+                    <span className="text-[8px] text-destructive-foreground">!</span>
+                  </div>
+                )}
               </div>
-            )}
-          </Button>
-        ))}
+
+              {/* Tooltip on hover */}
+              <div className="absolute left-full ml-2 px-2 py-1 bg-popover border border-border rounded text-xs text-popover-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                {video.title}
+                {isWatched && " ✓"}
+                {isUnavailable && " (unavailable)"}
+              </div>
+            </Button>
+          );
+        })}
       </div>
-      
-      <div className="mt-4 text-center">
-        <div className="text-xs text-muted-foreground mb-1">
-          {completedCount}/{videos.length}
-        </div>
-        <div className="w-2 h-20 bg-muted rounded-full overflow-hidden">
-          <div 
-            className="w-full bg-primary transition-all duration-300"
-            style={{ height: `${progressPercentage}%`, marginTop: `${100 - progressPercentage}%` }}
-          />
-        </div>
-      </div>
+
     </div>
   );
 };

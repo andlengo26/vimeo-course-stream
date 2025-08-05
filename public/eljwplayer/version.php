@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_eljwplayer';
-$plugin->release   = '2.0.1';
-$plugin->version   = 2025080504;
+$plugin->release   = '2.0.2';
+$plugin->version   = 2025080505;
 $plugin->requires  = 2019111800;
 $plugin->maturity  = MATURITY_STABLE;

@@ -180,5 +180,23 @@ function xmldb_eljwplayer_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2025080503, 'eljwplayer');
     }
 
+    // Fix form validation and parameter structure
+    if ($oldversion < 2025080505) {
+        // Ensure all Vimeo instances have proper vimeo_urls field set
+        $records = $DB->get_records('eljwplayer', ['videosource' => 'vimeo']);
+        foreach ($records as $record) {
+            if (empty($record->vimeo_urls) && !empty($record->video_url)) {
+                // Migrate single video_url to vimeo_urls array
+                $urls = [$record->video_url];
+                $DB->update_record('eljwplayer', (object)[
+                    'id' => $record->id,
+                    'vimeo_urls' => json_encode($urls)
+                ]);
+            }
+        }
+
+        upgrade_mod_savepoint(true, 2025080505, 'eljwplayer');
+    }
+
     return true;
 }

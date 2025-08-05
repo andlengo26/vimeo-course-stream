@@ -1,6 +1,9 @@
 {
   "scripts": {
-    "build:moodle": "npm run build && echo 'Build completed for Moodle integration. Assets are in public/eljwplayer/react-app/'",
+    "build:moodle": "npm run build && npm run copy:moodle",
+    "copy:moodle": "npm run copy:moodle:windows || npm run copy:moodle:unix",
+    "copy:moodle:windows": "if exist \"dist-moodle\" (rmdir /s /q \"public\\eljwplayer\\react-app\" & mkdir \"public\\eljwplayer\\react-app\" & xcopy /E /I \"dist-moodle\\*\" \"public\\eljwplayer\\react-app\\\")",
+    "copy:moodle:unix": "rm -rf public/eljwplayer/react-app && mkdir -p public/eljwplayer/react-app && cp -r dist-moodle/* public/eljwplayer/react-app/",
     "deploy:moodle": "npm run build:moodle && echo 'Ready for Moodle deployment. See DEPLOYMENT.md for next steps.'",
     "test:integration": "echo 'See TESTING.md for integration test scenarios'"
   }

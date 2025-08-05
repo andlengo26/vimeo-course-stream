@@ -109,3 +109,5 @@ $string['completionwatchvideo_help'] = 'Student must watch a percentage of video
 // Additional strings for improved form structure
 $string['jwplayersettings'] = 'JWPlayer Settings';
 $string['jwplayer_id_required'] = 'Either Media ID or Playlist ID is required for JWPlayer source.';
+$string['vimeourlsrequired'] = 'At least one Vimeo URL is required when using Vimeo as video source';
+$string['invalidvimeourl'] = 'Invalid Vimeo URL format. URLs must be in the format: https://vimeo.com/123456789';

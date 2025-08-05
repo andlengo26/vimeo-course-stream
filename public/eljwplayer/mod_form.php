@@ -195,6 +195,8 @@ class mod_eljwplayer_mod_form extends moodleform_mod
                             break;
                         }
                     }
+                } else if ($data['videosource'] === 'vimeo' && empty($data['vimeo_urls'])) {
+                    $errors['vimeo_urls'] = get_string('vimeourlsrequired', 'mod_eljwplayer');
                 }
             } elseif ($data['videosource'] === 'jwplayer') {
                 // Validate that either media_id or playlist_id is provided for JWPlayer

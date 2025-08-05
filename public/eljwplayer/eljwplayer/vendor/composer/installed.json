@@ -1,0 +1,58 @@
+{
+    "packages": [
+        {
+            "name": "jwplayer/jwplatform",
+            "version": "v2.0.0",
+            "version_normalized": "2.0.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jwplayer/jwplatform-php.git",
+                "reference": "86738a59e08cf9b8123cfb0054784819b78da789"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jwplayer/jwplatform-php/zipball/86738a59e08cf9b8123cfb0054784819b78da789",
+                "reference": "86738a59e08cf9b8123cfb0054784819b78da789",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "php": ">=5.6.0"
+            },
+            "time": "2022-01-03T18:22:18+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "Jwplayer\\": "src/",
+                    "Jwplayer\\v1\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "JWPlayer and contributors",
+                    "homepage": "https://github.com/jwplayer/jwplatform-php/contributors"
+                }
+            ],
+            "description": "Official JW Player client",
+            "homepage": "https://github.com/jwplayer/jwplatform-php",
+            "keywords": [
+                "api",
+                "jwplatform",
+                "jwplayer",
+                "video streaming"
+            ],
+            "support": {
+                "issues": "https://github.com/jwplayer/jwplatform-php/issues",
+                "source": "https://github.com/jwplayer/jwplatform-php/tree/v2.0.0"
+            },
+            "install-path": "../jwplayer/jwplatform"
+        }
+    ],
+    "dev": true,
+    "dev-package-names": []
+}

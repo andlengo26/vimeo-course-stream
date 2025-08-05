@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useCallback } from 'react';
 import { VimeoPlayer } from './VimeoPlayer';
 import { PlaylistSidebar } from './PlaylistSidebar';
@@ -19,9 +20,10 @@ export const VimeoPlaylist = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [autoplay, setAutoplay] = useState(vimeoPlaylistConfig.autoplay);
   
   const [playlistState, setPlaylistState] = useState<PlaylistState>({
-    currentVideoIndex: 0, // Start with 0 to avoid race conditions
+    currentVideoIndex: 0,
     watchedVideos: new Set(),
     isCompleted: false,
     showEndScreen: false,
@@ -30,69 +32,35 @@ export const VimeoPlaylist = () => {
 
   // Initialize Moodle completion service
   useEffect(() => {
-    if (vimeoPlaylistConfig.moodleActivityId) {
-      MoodleCompletionService.initialize({
-        activityId: vimeoPlaylistConfig.moodleActivityId,
-        userId: vimeoPlaylistConfig.moodleUserId || 'current',
-        courseId: vimeoPlaylistConfig.moodleCourseId || 'current'
-      });
+    try {
+      if (vimeoPlaylistConfig.moodleActivityId) {
+        MoodleCompletionService.initialize({
+          activityId: vimeoPlaylistConfig.moodleActivityId,
+          userId: vimeoPlaylistConfig.moodleUserId || 'current',
+          courseId: vimeoPlaylistConfig.moodleCourseId || 'current'
+        });
+      }
+    } catch (error) {
+      console.warn('Failed to initialize Moodle completion service:', error);
     }
   }, []);
 
-  // Load playlist metadata and initialize video selection
+  // Load playlist data
   useEffect(() => {
     loadPlaylistData();
   }, []);
 
-  // Save progress to localStorage whenever state changes
+  // Save progress when state changes
   useEffect(() => {
     saveProgress();
   }, [playlistState]);
 
-  // Consolidated video initialization - handles URL params, saved progress, and video loading
+  // Initialize video selection
   useEffect(() => {
     if (videos.length > 0) {
-      // Load saved progress first
-      const savedProgress = loadProgress();
-      
-      // Check URL parameters
-      const urlParams = new URLSearchParams(window.location.search);
-      const videoParam = urlParams.get('video');
-      const autoplayParam = urlParams.get('autoplay');
-      
-      // Set autoplay preference from URL
-      if (autoplayParam === 'true') {
-        setAutoplay(true);
-      }
-      
-      // Determine which video to show
-      let targetVideoIndex = 0;
-      
-      // Priority 1: URL parameter
-      if (videoParam) {
-        const urlIndex = parseInt(videoParam) - 1; // URL is 1-indexed
-        if (urlIndex >= 0 && urlIndex < videos.length) {
-          targetVideoIndex = urlIndex;
-        }
-      } else {
-        // Priority 2: Saved progress
-        targetVideoIndex = savedProgress.currentVideoIndex >= 0 ? savedProgress.currentVideoIndex : 0;
-      }
-      
-      // Update state with all saved progress and correct video index
-      setPlaylistState(prevState => ({
-        ...prevState,
-        currentVideoIndex: targetVideoIndex,
-        watchedVideos: savedProgress.watchedVideos,
-        isCompleted: savedProgress.isCompleted,
-        hasEverCompleted: savedProgress.hasEverCompleted,
-        showEndScreen: savedProgress.showEndScreen && savedProgress.isCompleted
-      }));
+      initializeVideoSelection();
     }
   }, [videos]);
-
-  // State for autoplay preference
-  const [autoplay, setAutoplay] = useState(vimeoPlaylistConfig.autoplay);
 
   const loadPlaylistData = async () => {
     try {
@@ -102,7 +70,6 @@ export const VimeoPlaylist = () => {
       const metadata = await VimeoApiService.getPlaylistMetadata(vimeoPlaylistConfig.videoUrls);
       setVideos(metadata);
 
-      // Filter out completely failed videos
       const validVideos = metadata.filter(video => video.videoId !== 'unknown' && video.title !== 'Video Unavailable');
       
       if (validVideos.length === 0) {
@@ -132,6 +99,39 @@ export const VimeoPlaylist = () => {
     }
   };
 
+  const initializeVideoSelection = () => {
+    const savedProgress = loadProgress();
+    
+    // Check URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoParam = urlParams.get('video');
+    const autoplayParam = urlParams.get('autoplay');
+    
+    if (autoplayParam === 'true') {
+      setAutoplay(true);
+    }
+    
+    let targetVideoIndex = 0;
+    
+    if (videoParam) {
+      const urlIndex = parseInt(videoParam) - 1;
+      if (urlIndex >= 0 && urlIndex < videos.length) {
+        targetVideoIndex = urlIndex;
+      }
+    } else {
+      targetVideoIndex = savedProgress.currentVideoIndex >= 0 ? savedProgress.currentVideoIndex : 0;
+    }
+    
+    setPlaylistState(prevState => ({
+      ...prevState,
+      currentVideoIndex: targetVideoIndex,
+      watchedVideos: savedProgress.watchedVideos,
+      isCompleted: savedProgress.isCompleted,
+      hasEverCompleted: savedProgress.hasEverCompleted,
+      showEndScreen: savedProgress.showEndScreen && savedProgress.isCompleted
+    }));
+  };
+
   const loadProgress = (): PlaylistState => {
     try {
       const saved = localStorage.getItem(CACHE_KEYS.PROGRESS);
@@ -150,14 +150,13 @@ export const VimeoPlaylist = () => {
     }
     
     return {
-      currentVideoIndex: 0, // Default to first video instead of -1
+      currentVideoIndex: 0,
       watchedVideos: new Set(),
       isCompleted: false,
       showEndScreen: false,
       hasEverCompleted: false
     };
   };
-
 
   const saveProgress = () => {
     try {
@@ -179,11 +178,9 @@ export const VimeoPlaylist = () => {
     const currentVideo = videos[playlistState.currentVideoIndex];
     if (!currentVideo) return;
 
-    // Mark current video as watched
     const newWatchedVideos = new Set(playlistState.watchedVideos);
     newWatchedVideos.add(currentVideo.videoId);
 
-    // Check if all videos are now watched
     const allWatched = videos.every(video => newWatchedVideos.has(video.videoId));
     
     setPlaylistState(prev => ({
@@ -194,10 +191,12 @@ export const VimeoPlaylist = () => {
       hasEverCompleted: prev.hasEverCompleted || allWatched
     }));
 
-    // Update Moodle progress
-    MoodleCompletionService.updateProgress(newWatchedVideos.size, videos.length);
+    try {
+      MoodleCompletionService.updateProgress(newWatchedVideos.size, videos.length);
+    } catch (error) {
+      console.warn('Failed to update Moodle progress:', error);
+    }
 
-    // Auto-advance to next video if continuous play is enabled
     if (vimeoPlaylistConfig.continuousPlay && !allWatched) {
       const nextIndex = playlistState.currentVideoIndex + 1;
       if (nextIndex < videos.length) {
@@ -206,13 +205,16 @@ export const VimeoPlaylist = () => {
             ...prev,
             currentVideoIndex: nextIndex
           }));
-        }, 1000); // Small delay before auto-advance
+        }, 1000);
       }
     }
 
-    // Mark activity complete in Moodle if all videos are watched
     if (allWatched) {
-      MoodleCompletionService.markComplete();
+      try {
+        MoodleCompletionService.markComplete();
+      } catch (error) {
+        console.warn('Failed to mark activity complete in Moodle:', error);
+      }
       
       toast({
         title: "Activity Complete! 🎉",
@@ -229,14 +231,11 @@ export const VimeoPlaylist = () => {
         showEndScreen: false
       }));
       
-      // Update URL parameter when video is selected
       const url = new URL(window.location.href);
       url.searchParams.set('video', (index + 1).toString());
       window.history.replaceState({}, '', url.toString());
-      // Enable autoplay for manually selected videos
       setAutoplay(true);
       
-      // Close sidebar on mobile after selection
       if (window.innerWidth < 1024) {
         setSidebarOpen(false);
       }
@@ -249,7 +248,7 @@ export const VimeoPlaylist = () => {
       watchedVideos: new Set(),
       isCompleted: false,
       showEndScreen: false,
-      hasEverCompleted: prev.hasEverCompleted // Keep the completion flag
+      hasEverCompleted: prev.hasEverCompleted
     }));
     
     toast({
@@ -330,7 +329,6 @@ export const VimeoPlaylist = () => {
             </div>
           )}
         </div>
-
       </div>
 
       {/* Desktop Sidebar */}

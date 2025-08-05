@@ -1,9 +1,0 @@
-{
-    "name": "eljwplayer/moodle-mod_eljwplayer",
-    "description": "eljwplayer plugin for Moodle",
-    "type": "project",
-    "license": "GPL-v3",
-    "require": {
-        "jwplayer/jwplatform": "^2.0"
-    }
-}

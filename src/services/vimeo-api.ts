@@ -29,32 +29,25 @@ export class VimeoApiService {
   static async getVideoMetadata(url: string): Promise<VideoMetadata | null> {
     const videoId = this.extractVideoId(url);
     if (!videoId) {
-      console.error('Invalid Vimeo URL:', url);
       return null;
     }
-
-    console.log(`Fetching metadata for video ID: ${videoId}, URL: ${url}`);
 
     // Check cache first
     const cached = this.getCachedMetadata(videoId);
     if (cached) {
-      console.log(`Using cached metadata for video ID: ${videoId}`);
       return cached;
     }
 
     try {
       const oembedUrl = `${this.OEMBED_BASE_URL}?url=${encodeURIComponent(url)}&width=640&height=360`;
-      console.log(`Fetching from oEmbed API: ${oembedUrl}`);
       
       const response = await fetch(oembedUrl);
       
       if (!response.ok) {
-        console.error(`Failed to fetch metadata for ${videoId}: ${response.status} ${response.statusText}`);
         throw new Error(`Failed to fetch metadata: ${response.status}`);
       }
 
       const data: VimeoOEmbedResponse = await response.json();
-      console.log(`Successfully fetched metadata for video ID: ${videoId}`, data);
       
       const metadata: VideoMetadata = {
         url,
@@ -72,7 +65,6 @@ export class VimeoApiService {
       
       return metadata;
     } catch (error) {
-      console.error('Error fetching video metadata:', error);
       
       // Return fallback metadata
       return {
@@ -130,7 +122,6 @@ export class VimeoApiService {
 
       return data;
     } catch (error) {
-      console.error('Error reading cache:', error);
       return null;
     }
   }
@@ -146,7 +137,7 @@ export class VimeoApiService {
       };
       localStorage.setItem(`vimeo_meta_${videoId}`, JSON.stringify(cacheData));
     } catch (error) {
-      console.error('Error caching metadata:', error);
+      // Silent fail for caching
     }
   }
 
@@ -162,7 +153,7 @@ export class VimeoApiService {
         }
       });
     } catch (error) {
-      console.error('Error clearing cache:', error);
+      // Silent fail for cache clearing
     }
   }
 

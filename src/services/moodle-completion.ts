@@ -34,7 +34,6 @@ export class MoodleCompletionService {
    */
   static async markComplete(): Promise<boolean> {
     if (!this.isAvailable() || !this.config) {
-      console.warn('Moodle completion service not available');
       return false;
     }
 
@@ -55,13 +54,11 @@ export class MoodleCompletionService {
         };
 
         const response = await ajax.call([request])[0];
-        console.log('Activity marked as complete in Moodle:', response);
         return true;
       }
       
       return false;
     } catch (error) {
-      console.error('Error marking activity complete:', error);
       return false;
     }
   }
@@ -89,7 +86,7 @@ export class MoodleCompletionService {
       
       window.dispatchEvent(event);
     } catch (error) {
-      console.error('Error updating progress:', error);
+      // Silent fail for progress updates
     }
   }
 
@@ -136,7 +133,7 @@ export class MoodleCompletionService {
         globalHandler(eventType, data);
       }
     } catch (error) {
-      console.error('Error sending completion event:', error);
+      // Silent fail for completion events
     }
   }
 }

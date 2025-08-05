@@ -6,14 +6,19 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { vimeoPlaylistConfig } from '@/config/vimeo-playlist';
 import './index.css';
 
+console.log('Main.tsx: Starting app initialization');
+
 // Find container and initialize app
 const container = document.getElementById('vimeo-playlist-root') || document.getElementById('root');
 
 if (!container) {
   console.error('No container found for React app');
 } else {
+  console.log('Main.tsx: Container found, checking for Moodle config');
+  
   // Update config from Moodle if available
   if (typeof window !== 'undefined' && (window as any).MoodleVimeoConfig) {
+    console.log('Main.tsx: MoodleVimeoConfig found, applying configuration');
     const moodleConfig = (window as any).MoodleVimeoConfig;
     Object.assign(vimeoPlaylistConfig, {
       videoUrls: Array.isArray(moodleConfig.videoUrls) ? moodleConfig.videoUrls : vimeoPlaylistConfig.videoUrls,
@@ -24,8 +29,10 @@ if (!container) {
       moodleUserId: moodleConfig.moodleUserId,
       moodleCourseId: moodleConfig.moodleCourseId
     });
+    console.log('Main.tsx: Configuration updated:', vimeoPlaylistConfig);
   }
 
+  console.log('Main.tsx: Rendering React app');
   // Render the app
   const root = createRoot(container);
   root.render(
@@ -34,4 +41,5 @@ if (!container) {
       <Toaster />
     </TooltipProvider>
   );
+  console.log('Main.tsx: React app rendered successfully');
 }

@@ -14,6 +14,8 @@ import { AlertCircle, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const VimeoPlaylist = () => {
+  console.log('VimeoPlaylist: Component initializing');
+  
   const { toast } = useToast();
   const [videos, setVideos] = useState<VideoMetadata[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,27 +33,32 @@ export const VimeoPlaylist = () => {
 
   // Load playlist data
   useEffect(() => {
+    console.log('VimeoPlaylist: Loading playlist data');
     loadPlaylistData();
   }, []);
 
   // Save progress when state changes
   useEffect(() => {
+    console.log('VimeoPlaylist: Saving progress');
     saveProgress();
   }, [playlistState]);
 
   // Initialize video selection
   useEffect(() => {
     if (videos.length > 0) {
+      console.log('VimeoPlaylist: Initializing video selection with', videos.length, 'videos');
       initializeVideoSelection();
     }
   }, [videos]);
 
   const loadPlaylistData = async () => {
     try {
+      console.log('VimeoPlaylist: Starting playlist data load');
       setIsLoading(true);
       setError(null);
 
       const metadata = await VimeoApiService.getPlaylistMetadata(vimeoPlaylistConfig.videoUrls);
+      console.log('VimeoPlaylist: Metadata loaded:', metadata.length, 'videos');
       setVideos(metadata);
 
       const validVideos = metadata.filter(video => video.videoId !== 'unknown' && video.title !== 'Video Unavailable');
@@ -69,6 +76,7 @@ export const VimeoPlaylist = () => {
       }
 
     } catch (err) {
+      console.error('VimeoPlaylist: Error loading playlist:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to load playlist';
       setError(errorMessage);
       
@@ -83,6 +91,7 @@ export const VimeoPlaylist = () => {
   };
 
   const initializeVideoSelection = () => {
+    console.log('VimeoPlaylist: Initializing video selection');
     const savedProgress = loadProgress();
     
     // Check URL parameters
@@ -104,6 +113,8 @@ export const VimeoPlaylist = () => {
     } else {
       targetVideoIndex = savedProgress.currentVideoIndex >= 0 ? savedProgress.currentVideoIndex : 0;
     }
+    
+    console.log('VimeoPlaylist: Setting target video index to', targetVideoIndex);
     
     setPlaylistState(prevState => ({
       ...prevState,
@@ -129,7 +140,7 @@ export const VimeoPlaylist = () => {
         };
       }
     } catch (error) {
-      console.error('Error loading progress:', error);
+      console.error('VimeoPlaylist: Error loading progress:', error);
     }
     
     return {
@@ -153,11 +164,12 @@ export const VimeoPlaylist = () => {
       };
       localStorage.setItem(CACHE_KEYS.PROGRESS, JSON.stringify(progress));
     } catch (error) {
-      console.error('Error saving progress:', error);
+      console.error('VimeoPlaylist: Error saving progress:', error);
     }
   };
 
   const handleVideoEnd = useCallback(() => {
+    console.log('VimeoPlaylist: Video ended');
     const currentVideo = videos[playlistState.currentVideoIndex];
     if (!currentVideo) return;
 
@@ -165,6 +177,8 @@ export const VimeoPlaylist = () => {
     newWatchedVideos.add(currentVideo.videoId);
 
     const allWatched = videos.every(video => newWatchedVideos.has(video.videoId));
+    
+    console.log('VimeoPlaylist: All videos watched?', allWatched);
     
     setPlaylistState(prev => ({
       ...prev,
@@ -194,13 +208,14 @@ export const VimeoPlaylist = () => {
           }));
         }
       } catch (error) {
-        console.warn('Failed to dispatch completion events:', error);
+        console.warn('VimeoPlaylist: Failed to dispatch completion events:', error);
       }
     }
 
     if (vimeoPlaylistConfig.continuousPlay && !allWatched) {
       const nextIndex = playlistState.currentVideoIndex + 1;
       if (nextIndex < videos.length) {
+        console.log('VimeoPlaylist: Auto-advancing to next video');
         setTimeout(() => {
           setPlaylistState(prev => ({
             ...prev,
@@ -219,6 +234,7 @@ export const VimeoPlaylist = () => {
   }, [videos, playlistState, toast]);
 
   const handleVideoSelect = useCallback((index: number) => {
+    console.log('VimeoPlaylist: Video selected:', index);
     if (index >= 0 && index < videos.length) {
       setPlaylistState(prev => ({
         ...prev,
@@ -238,6 +254,7 @@ export const VimeoPlaylist = () => {
   }, [videos.length]);
 
   const handleRestart = useCallback(() => {
+    console.log('VimeoPlaylist: Restarting playlist');
     setPlaylistState(prev => ({
       currentVideoIndex: 0,
       watchedVideos: new Set(),
@@ -253,11 +270,13 @@ export const VimeoPlaylist = () => {
   }, [toast]);
 
   const handleRetry = () => {
+    console.log('VimeoPlaylist: Retrying playlist load');
     loadPlaylistData();
   };
 
   // Loading state
   if (isLoading) {
+    console.log('VimeoPlaylist: Rendering loading state');
     return (
       <div className="h-screen bg-background flex overflow-hidden">
         <div className="flex-1 flex flex-col p-4">
@@ -285,6 +304,7 @@ export const VimeoPlaylist = () => {
 
   // Error state
   if (error) {
+    console.log('VimeoPlaylist: Rendering error state:', error);
     return (
       <div className="h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md text-center p-8">
@@ -301,6 +321,8 @@ export const VimeoPlaylist = () => {
   }
 
   const currentVideo = playlistState.currentVideoIndex >= 0 ? videos[playlistState.currentVideoIndex] : null;
+
+  console.log('VimeoPlaylist: Rendering main component with current video:', currentVideo?.title);
 
   return (
     <div className="h-screen lg:h-screen bg-background flex overflow-hidden mobile-video-layout">

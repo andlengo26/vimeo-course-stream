@@ -1,3 +1,4 @@
+
 import { createRoot } from 'react-dom/client'
 import { VimeoPlaylist } from './components/VimeoPlaylist'
 import { Toaster } from "@/components/ui/toaster"
@@ -32,7 +33,8 @@ function initApp() {
 
   updateConfigFromMoodle();
 
-  createRoot(container).render(
+  const root = createRoot(container);
+  root.render(
     <TooltipProvider>
       <VimeoPlaylist />
       <Toaster />
@@ -40,13 +42,13 @@ function initApp() {
   );
 }
 
-// Listen for Moodle config ready event or initialize immediately
+// Initialize based on environment
 if (typeof window !== 'undefined') {
   if ((window as any).MoodleVimeoConfig) {
     // Config already available
     initApp();
   } else {
-    // Wait for config
+    // Wait for config or timeout
     window.addEventListener('moodleConfigReady', () => {
       initApp();
     });

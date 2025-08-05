@@ -4,10 +4,14 @@
 echo "Building React app for Moodle integration..."
 
 # Clean previous builds
+rm -rf dist-moodle
 rm -rf public/eljwplayer/react-app/*
 
 # Build the React application
 npm run build
+
+# Copy built files to Moodle plugin directory
+cp -r dist-moodle/* public/eljwplayer/react-app/
 
 # Copy built files to Moodle plugin directory
 echo "Build completed successfully!"

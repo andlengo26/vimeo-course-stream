@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    outDir: 'public/eljwplayer/react-app',
+    outDir: 'dist-moodle',
     assetsDir: 'assets',
     rollupOptions: {
       output: {

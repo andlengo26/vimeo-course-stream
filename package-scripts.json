@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "build:moodle": "npm run build && echo 'Build completed for Moodle integration. Assets are in public/eljwplayer/react-app/'",
+    "deploy:moodle": "npm run build:moodle && echo 'Ready for Moodle deployment. See DEPLOYMENT.md for next steps.'",
+    "test:integration": "echo 'See TESTING.md for integration test scenarios'"
+  }
+}

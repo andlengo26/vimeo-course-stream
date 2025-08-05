@@ -10,7 +10,6 @@ import './index.css'
 function updateConfigFromMoodle() {
   const moodleConfig = (window as any).MoodleVimeoConfig;
   if (moodleConfig) {
-    console.log('Moodle config found:', moodleConfig);
     // Update the config object
     Object.assign(vimeoPlaylistConfig, {
       videoUrls: moodleConfig.videoUrls || vimeoPlaylistConfig.videoUrls,
@@ -28,7 +27,6 @@ function updateConfigFromMoodle() {
 function initApp() {
   const container = document.getElementById('vimeo-playlist-root') || document.getElementById('root');
   if (!container) {
-    console.error('No container found for Vimeo playlist app');
     return;
   }
 

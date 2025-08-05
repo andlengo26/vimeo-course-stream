@@ -59,7 +59,6 @@ export const VimeoPlayer = ({ video, onVideoEnd, onReady, isFirstVideo = false, 
     };
 
     loadVimeoSDK().catch(err => {
-      console.error('Error loading Vimeo SDK:', err);
       setError('Failed to load video player');
     });
   }, []);
@@ -109,13 +108,11 @@ export const VimeoPlayer = ({ video, onVideoEnd, onReady, isFirstVideo = false, 
       });
 
       player.on('error', (error: any) => {
-        console.error('Vimeo player error:', error);
         setError('Failed to load video');
         setIsLoading(false);
       });
 
     } catch (err) {
-      console.error('Error initializing Vimeo player:', err);
       setError('Failed to initialize video player');
       setIsLoading(false);
     }

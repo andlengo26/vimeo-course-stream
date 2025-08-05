@@ -8,17 +8,17 @@ import './index.css'
 
 // Function to update config from Moodle
 function updateConfigFromMoodle() {
-  const moodleConfig = (window as any).MoodleVimeoConfig;
+  const moodleConfig = (window as any).MoodleConfig;
   if (moodleConfig) {
     // Update the config object
     Object.assign(vimeoPlaylistConfig, {
-      videoUrls: moodleConfig.videoUrls || vimeoPlaylistConfig.videoUrls,
+      videoUrls: moodleConfig.vimeoUrls || vimeoPlaylistConfig.videoUrls,
       continuousPlay: moodleConfig.continuousPlay ?? vimeoPlaylistConfig.continuousPlay,
       autoplay: moodleConfig.autoplay ?? vimeoPlaylistConfig.autoplay,
       showEndScreen: moodleConfig.showEndScreen ?? vimeoPlaylistConfig.showEndScreen,
-      moodleActivityId: moodleConfig.moodleActivityId,
-      moodleUserId: moodleConfig.moodleUserId,
-      moodleCourseId: moodleConfig.moodleCourseId
+      moodleActivityId: moodleConfig.activityId,
+      moodleUserId: moodleConfig.userId,
+      moodleCourseId: moodleConfig.courseId
     });
   }
 }
@@ -43,18 +43,18 @@ function initApp() {
 
 // Initialize based on environment
 if (typeof window !== 'undefined') {
-  if ((window as any).MoodleVimeoConfig) {
+  if ((window as any).MoodleConfig) {
     // Config already available
     initApp();
   } else {
     // Wait for config or timeout
-    window.addEventListener('moodleConfigReady', () => {
+    window.addEventListener('moodle-config-ready', () => {
       initApp();
     });
     
     // Fallback: initialize after a short delay if no Moodle config
     setTimeout(() => {
-      if (!(window as any).MoodleVimeoConfig) {
+      if (!(window as any).MoodleConfig) {
         initApp();
       }
     }, 1000);

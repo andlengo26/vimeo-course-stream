@@ -13,16 +13,16 @@ if (!container) {
   console.error('No container found for React app');
 } else {
   // Update config from Moodle if available
-  if (typeof window !== 'undefined' && (window as any).MoodleConfig) {
-    const moodleConfig = (window as any).MoodleConfig;
+  if (typeof window !== 'undefined' && (window as any).MoodleVimeoConfig) {
+    const moodleConfig = (window as any).MoodleVimeoConfig;
     Object.assign(vimeoPlaylistConfig, {
-      videoUrls: Array.isArray(moodleConfig.vimeoUrls) ? moodleConfig.vimeoUrls : vimeoPlaylistConfig.videoUrls,
+      videoUrls: Array.isArray(moodleConfig.videoUrls) ? moodleConfig.videoUrls : vimeoPlaylistConfig.videoUrls,
       continuousPlay: moodleConfig.continuousPlay ?? vimeoPlaylistConfig.continuousPlay,
       autoplay: moodleConfig.autoplay ?? vimeoPlaylistConfig.autoplay,
       showEndScreen: moodleConfig.showEndScreen ?? vimeoPlaylistConfig.showEndScreen,
-      moodleActivityId: moodleConfig.activityId,
-      moodleUserId: moodleConfig.userId,
-      moodleCourseId: moodleConfig.courseId
+      moodleActivityId: moodleConfig.moodleActivityId,
+      moodleUserId: moodleConfig.moodleUserId,
+      moodleCourseId: moodleConfig.moodleCourseId
     });
   }
 

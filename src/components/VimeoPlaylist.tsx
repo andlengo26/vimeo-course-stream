@@ -6,7 +6,6 @@ import { VideoProgressBar } from './VideoProgressBar';
 import { CompletionScreen } from './CompletionScreen';
 import { vimeoPlaylistConfig, VideoMetadata, PlaylistState, CACHE_KEYS } from '@/config/vimeo-playlist';
 import { VimeoApiService } from '@/services/vimeo-api';
-import { MoodleCompletionService } from '@/services/moodle-completion';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,21 +28,6 @@ export const VimeoPlaylist = () => {
     showEndScreen: false,
     hasEverCompleted: false
   });
-
-  // Initialize Moodle completion service
-  useEffect(() => {
-    try {
-      if (vimeoPlaylistConfig.moodleActivityId) {
-        MoodleCompletionService.initialize({
-          activityId: vimeoPlaylistConfig.moodleActivityId,
-          userId: vimeoPlaylistConfig.moodleUserId || 'current',
-          courseId: vimeoPlaylistConfig.moodleCourseId || 'current'
-        });
-      }
-    } catch (error) {
-      console.warn('Failed to initialize Moodle completion service:', error);
-    }
-  }, []);
 
   // Load playlist data
   useEffect(() => {
@@ -87,7 +71,6 @@ export const VimeoPlaylist = () => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load playlist';
       setError(errorMessage);
-      console.error('Error loading playlist:', err);
       
       toast({
         title: "Error loading playlist",
@@ -191,10 +174,28 @@ export const VimeoPlaylist = () => {
       hasEverCompleted: prev.hasEverCompleted || allWatched
     }));
 
-    try {
-      MoodleCompletionService.updateProgress(newWatchedVideos.size, videos.length);
-    } catch (error) {
-      console.warn('Failed to update Moodle progress:', error);
+    // Dispatch completion event for Moodle
+    if (typeof window !== 'undefined') {
+      try {
+        window.dispatchEvent(new CustomEvent('vimeo_playlist_progress', {
+          detail: {
+            videoid: currentVideo.videoId,
+            progress: newWatchedVideos.size,
+            total: videos.length
+          }
+        }));
+
+        if (allWatched) {
+          window.dispatchEvent(new CustomEvent('vimeo_playlist_complete', {
+            detail: {
+              videoid: 'all',
+              completed: true
+            }
+          }));
+        }
+      } catch (error) {
+        console.warn('Failed to dispatch completion events:', error);
+      }
     }
 
     if (vimeoPlaylistConfig.continuousPlay && !allWatched) {
@@ -210,12 +211,6 @@ export const VimeoPlaylist = () => {
     }
 
     if (allWatched) {
-      try {
-        MoodleCompletionService.markComplete();
-      } catch (error) {
-        console.warn('Failed to mark activity complete in Moodle:', error);
-      }
-      
       toast({
         title: "Activity Complete! 🎉",
         description: "You have finished all videos in this activity.",

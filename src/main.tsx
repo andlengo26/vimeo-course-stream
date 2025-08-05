@@ -1,6 +1,7 @@
 
 import { createRoot } from 'react-dom/client';
 import { VimeoPlaylist } from './components/VimeoPlaylist';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { vimeoPlaylistConfig } from '@/config/vimeo-playlist';
@@ -33,13 +34,19 @@ if (!container) {
   }
 
   console.log('Main.tsx: Rendering React app');
-  // Render the app
-  const root = createRoot(container);
-  root.render(
-    <TooltipProvider>
-      <VimeoPlaylist />
-      <Toaster />
-    </TooltipProvider>
-  );
-  console.log('Main.tsx: React app rendered successfully');
+  
+  try {
+    const root = createRoot(container);
+    root.render(
+      <ErrorBoundary>
+        <TooltipProvider>
+          <VimeoPlaylist />
+          <Toaster />
+        </TooltipProvider>
+      </ErrorBoundary>
+    );
+    console.log('Main.tsx: React app rendered successfully');
+  } catch (error) {
+    console.error('Main.tsx: Failed to render React app:', error);
+  }
 }

@@ -59,6 +59,11 @@ export const VimeoPlaylist = () => {
 
       const metadata = await VimeoApiService.getPlaylistMetadata(vimeoPlaylistConfig.videoUrls);
       console.log('VimeoPlaylist: Metadata loaded:', metadata.length, 'videos');
+      
+      if (!metadata || metadata.length === 0) {
+        throw new Error('No videos found in the playlist');
+      }
+      
       setVideos(metadata);
 
       const validVideos = metadata.filter(video => video.videoId !== 'unknown' && video.title !== 'Video Unavailable');
@@ -107,11 +112,20 @@ export const VimeoPlaylist = () => {
     
     if (videoParam) {
       const urlIndex = parseInt(videoParam) - 1;
+      // Ensure the index is within bounds
       if (urlIndex >= 0 && urlIndex < videos.length) {
         targetVideoIndex = urlIndex;
+      } else {
+        console.warn('VimeoPlaylist: URL video parameter out of bounds, using index 0');
+        targetVideoIndex = 0;
       }
     } else {
-      targetVideoIndex = savedProgress.currentVideoIndex >= 0 ? savedProgress.currentVideoIndex : 0;
+      // Ensure saved progress index is within bounds
+      if (savedProgress.currentVideoIndex >= 0 && savedProgress.currentVideoIndex < videos.length) {
+        targetVideoIndex = savedProgress.currentVideoIndex;
+      } else {
+        targetVideoIndex = 0;
+      }
     }
     
     console.log('VimeoPlaylist: Setting target video index to', targetVideoIndex);
@@ -132,7 +146,7 @@ export const VimeoPlaylist = () => {
       if (saved) {
         const parsed = JSON.parse(saved);
         return {
-          currentVideoIndex: parsed.currentVideoIndex >= 0 ? parsed.currentVideoIndex : 0,
+          currentVideoIndex: Math.max(0, Math.min(parsed.currentVideoIndex || 0, videos.length - 1)),
           watchedVideos: new Set(parsed.watchedVideos || []),
           isCompleted: parsed.isCompleted || false,
           showEndScreen: parsed.showEndScreen || false,
@@ -170,8 +184,18 @@ export const VimeoPlaylist = () => {
 
   const handleVideoEnd = useCallback(() => {
     console.log('VimeoPlaylist: Video ended');
+    
+    // Ensure we have videos and a valid current index
+    if (!videos || videos.length === 0 || playlistState.currentVideoIndex < 0 || playlistState.currentVideoIndex >= videos.length) {
+      console.warn('VimeoPlaylist: Invalid video state on video end');
+      return;
+    }
+    
     const currentVideo = videos[playlistState.currentVideoIndex];
-    if (!currentVideo) return;
+    if (!currentVideo) {
+      console.warn('VimeoPlaylist: No current video found');
+      return;
+    }
 
     const newWatchedVideos = new Set(playlistState.watchedVideos);
     newWatchedVideos.add(currentVideo.videoId);
@@ -242,9 +266,14 @@ export const VimeoPlaylist = () => {
         showEndScreen: false
       }));
       
-      const url = new URL(window.location.href);
-      url.searchParams.set('video', (index + 1).toString());
-      window.history.replaceState({}, '', url.toString());
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('video', (index + 1).toString());
+        window.history.replaceState({}, '', url.toString());
+      } catch (error) {
+        console.warn('VimeoPlaylist: Failed to update URL:', error);
+      }
+      
       setAutoplay(true);
       
       if (window.innerWidth < 1024) {
@@ -320,7 +349,10 @@ export const VimeoPlaylist = () => {
     );
   }
 
-  const currentVideo = playlistState.currentVideoIndex >= 0 ? videos[playlistState.currentVideoIndex] : null;
+  // Ensure we have a valid current video
+  const currentVideo = (playlistState.currentVideoIndex >= 0 && playlistState.currentVideoIndex < videos.length) 
+    ? videos[playlistState.currentVideoIndex] 
+    : null;
 
   console.log('VimeoPlaylist: Rendering main component with current video:', currentVideo?.title);
 

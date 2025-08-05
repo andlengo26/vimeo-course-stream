@@ -152,5 +152,33 @@ function xmldb_eljwplayer_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2025080502, 'eljwplayer');
     }
 
+    // Add vimeo_urls field to separate Vimeo URLs from videosource selector
+    if ($oldversion < 2025080503) {
+        $table = new xmldb_table('eljwplayer');
+        $field = new xmldb_field('vimeo_urls', XMLDB_TYPE_TEXT, null, null, null, null, null);
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Migrate existing videosource JSON data to vimeo_urls field
+        $records = $DB->get_records('eljwplayer');
+        foreach ($records as $record) {
+            if (!empty($record->videosource) && $record->videosource !== 'vimeo' && $record->videosource !== 'jwplayer') {
+                // This looks like JSON data, migrate it
+                $decoded = json_decode($record->videosource, true);
+                if (is_array($decoded)) {
+                    $DB->update_record('eljwplayer', (object)[
+                        'id' => $record->id,
+                        'vimeo_urls' => $record->videosource,
+                        'videosource' => 'vimeo'
+                    ]);
+                }
+            }
+        }
+
+        upgrade_mod_savepoint(true, 2025080503, 'eljwplayer');
+    }
+
     return true;
 }

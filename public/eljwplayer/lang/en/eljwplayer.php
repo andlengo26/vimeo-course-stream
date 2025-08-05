@@ -105,3 +105,7 @@ $string['autoplay_help'] = 'Automatically start playing videos when they load.';
 $string['showendscreen'] = 'Show completion screen';
 $string['showendscreen_help'] = 'Show a completion screen when all videos have been watched.';
 $string['completionwatchvideo_help'] = 'Student must watch a percentage of videos to complete this activity. Enter the percentage (1-100) of videos that must be watched.';
+
+// Additional strings for improved form structure
+$string['jwplayersettings'] = 'JWPlayer Settings';
+$string['jwplayer_id_required'] = 'Either Media ID or Playlist ID is required for JWPlayer source.';

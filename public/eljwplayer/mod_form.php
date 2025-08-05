@@ -45,6 +45,7 @@ class mod_eljwplayer_mod_form extends moodleform_mod
     {
         global $CFG, $PAGE;
         $PAGE->requires->js_call_amd('mod_eljwplayer/repository', 'init');
+        $PAGE->requires->js_call_amd('mod_eljwplayer/form-enhancement', 'init');
 
         $mform = $this->_form;
 
@@ -73,24 +74,36 @@ class mod_eljwplayer_mod_form extends moodleform_mod
         $mform->setDefault('videosource', 'vimeo');
         $mform->setType('videosource', PARAM_ALPHA);
 
+        // JWPlayer settings
+        $mform->addElement('header', 'jwplayersettings', get_string('jwplayersettings', 'mod_eljwplayer'));
+        
         $mform->addElement('text', 'media_id', get_string('media_id', 'mod_eljwplayer'), array('size' => '64'));
         $mform->setType('media_id', PARAM_TEXT);
         $mform->addRule('media_id', get_string('maximumchars', '', 8), 'maxlength', 8, 'client');
+        $mform->hideIf('media_id', 'videosource', 'neq', 'jwplayer');
 
         $mform->addElement('text', 'playlist_id', get_string('playlist_id', 'mod_eljwplayer'), array('size' => '64'));
         $mform->setType('playlist_id', PARAM_TEXT);
         $mform->addRule('playlist_id', get_string('maximumchars', '', 8), 'maxlength', 8, 'client');
+        $mform->hideIf('playlist_id', 'videosource', 'neq', 'jwplayer');
 
+        // Legacy single video support
         $mform->addElement('text', 'video_url', get_string('video_url', 'mod_eljwplayer'), ['size' => '64']);
         $mform->setType('video_url', PARAM_URL);
+        $mform->addHelpButton('video_url', 'video_url', 'mod_eljwplayer');
+        $mform->hideIf('video_url', 'videosource', 'neq', 'vimeo');
 
         // Vimeo playlist settings
         $mform->addElement('header', 'vimeosettings', get_string('vimeosettings', 'mod_eljwplayer'));
         
-        $mform->addElement('textarea', 'videosource', get_string('vimeourls', 'mod_eljwplayer'), 
+        // Dynamic Vimeo URLs field with add button
+        $mform->addElement('html', '<div id="vimeo-urls-container">');
+        $mform->addElement('textarea', 'vimeo_urls', get_string('vimeourls', 'mod_eljwplayer'), 
             ['rows' => 5, 'cols' => 60, 'placeholder' => get_string('vimeourls_placeholder', 'mod_eljwplayer')]);
-        $mform->setType('videosource', PARAM_TEXT);
-        $mform->addHelpButton('videosource', 'vimeourls', 'mod_eljwplayer');
+        $mform->setType('vimeo_urls', PARAM_TEXT);
+        $mform->addHelpButton('vimeo_urls', 'vimeourls', 'mod_eljwplayer');
+        $mform->addElement('html', '</div>');
+        $mform->hideIf('vimeo_urls', 'videosource', 'neq', 'vimeo');
 
         $mform->addElement('advcheckbox', 'continuousplay', get_string('continuousplay', 'mod_eljwplayer'));
         $mform->setDefault('continuousplay', 1);
@@ -149,11 +162,11 @@ class mod_eljwplayer_mod_form extends moodleform_mod
     public function data_preprocessing(&$default_values) {
         parent::data_preprocessing($default_values);
         
-        // Handle videosource field - convert JSON array back to newline-separated text
-        if (!empty($default_values['videosource'])) {
-            $videoUrls = json_decode($default_values['videosource'], true);
+        // Handle vimeo_urls field - convert JSON array back to newline-separated text
+        if (!empty($default_values['vimeo_urls'])) {
+            $videoUrls = json_decode($default_values['vimeo_urls'], true);
             if (is_array($videoUrls)) {
-                $default_values['videosource'] = implode("\n", $videoUrls);
+                $default_values['vimeo_urls'] = implode("\n", $videoUrls);
             }
         }
     }
@@ -170,13 +183,23 @@ class mod_eljwplayer_mod_form extends moodleform_mod
     {
         $errors = parent::validation($data, $files);
         
-        // Validate Vimeo URLs if videosource is set to vimeo
-        if (!empty($data['videosource']) && is_string($data['videosource'])) {
-            $lines = array_filter(array_map('trim', explode("\n", $data['videosource'])));
-            foreach ($lines as $line) {
-                if (!empty($line) && !preg_match('/^https:\/\/vimeo\.com\/\d+/', $line)) {
-                    $errors['videosource'] = get_string('invalidvimeourl', 'mod_eljwplayer');
-                    break;
+        // Validate based on selected video source
+        if (!empty($data['videosource'])) {
+            if ($data['videosource'] === 'vimeo') {
+                // Validate Vimeo URLs if provided
+                if (!empty($data['vimeo_urls']) && is_string($data['vimeo_urls'])) {
+                    $lines = array_filter(array_map('trim', explode("\n", $data['vimeo_urls'])));
+                    foreach ($lines as $line) {
+                        if (!empty($line) && !preg_match('/^https:\/\/vimeo\.com\/\d+/', $line)) {
+                            $errors['vimeo_urls'] = get_string('invalidvimeourl', 'mod_eljwplayer');
+                            break;
+                        }
+                    }
+                }
+            } elseif ($data['videosource'] === 'jwplayer') {
+                // Validate that either media_id or playlist_id is provided for JWPlayer
+                if (empty($data['media_id']) && empty($data['playlist_id'])) {
+                    $errors['media_id'] = get_string('jwplayer_id_required', 'mod_eljwplayer');
                 }
             }
         }
@@ -190,10 +213,10 @@ class mod_eljwplayer_mod_form extends moodleform_mod
     public function get_data() {
         $data = parent::get_data();
         if ($data) {
-            // Convert newline-separated URLs to JSON array
-            if (!empty($data->videosource) && is_string($data->videosource)) {
-                $lines = array_filter(array_map('trim', explode("\n", $data->videosource)));
-                $data->videosource = json_encode(array_values($lines));
+            // Convert newline-separated Vimeo URLs to JSON array
+            if (!empty($data->vimeo_urls) && is_string($data->vimeo_urls)) {
+                $lines = array_filter(array_map('trim', explode("\n", $data->vimeo_urls)));
+                $data->vimeo_urls = json_encode(array_values($lines));
             }
         }
         return $data;

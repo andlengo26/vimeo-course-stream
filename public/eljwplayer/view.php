@@ -83,9 +83,9 @@ if($eljwplayer->videosource == 'jwplayer') {
     // Check if we have playlist videos (new format) or single video (legacy)
     $videoUrls = [];
     
-    if (!empty($eljwplayer->videosource) && $eljwplayer->videosource !== 'vimeo') {
-        // New format: JSON array of video URLs
-        $decodedUrls = json_decode($eljwplayer->videosource, true);
+    if (!empty($eljwplayer->vimeo_urls)) {
+        // New format: JSON array of video URLs in vimeo_urls field
+        $decodedUrls = json_decode($eljwplayer->vimeo_urls, true);
         if (is_array($decodedUrls)) {
             $videoUrls = $decodedUrls;
         }

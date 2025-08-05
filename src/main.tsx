@@ -2,11 +2,64 @@ import { createRoot } from 'react-dom/client'
 import { VimeoPlaylist } from './components/VimeoPlaylist'
 import { Toaster } from "@/components/ui/toaster"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { vimeoPlaylistConfig } from '@/config/vimeo-playlist'
 import './index.css'
 
-createRoot(document.getElementById("root")!).render(
-  <TooltipProvider>
-    <VimeoPlaylist />
-    <Toaster />
-  </TooltipProvider>
-);
+// Function to update config from Moodle
+function updateConfigFromMoodle() {
+  const moodleConfig = (window as any).MoodleVimeoConfig;
+  if (moodleConfig) {
+    // Update the config object
+    Object.assign(vimeoPlaylistConfig, {
+      videoUrls: moodleConfig.videoUrls || vimeoPlaylistConfig.videoUrls,
+      continuousPlay: moodleConfig.continuousPlay ?? vimeoPlaylistConfig.continuousPlay,
+      autoplay: moodleConfig.autoplay ?? vimeoPlaylistConfig.autoplay,
+      showEndScreen: moodleConfig.showEndScreen ?? vimeoPlaylistConfig.showEndScreen,
+      moodleActivityId: moodleConfig.moodleActivityId,
+      moodleUserId: moodleConfig.moodleUserId,
+      moodleCourseId: moodleConfig.moodleCourseId
+    });
+  }
+}
+
+// Initialize app
+function initApp() {
+  const container = document.getElementById('vimeo-playlist-root') || document.getElementById('root');
+  if (!container) {
+    console.error('No container found for Vimeo playlist app');
+    return;
+  }
+
+  updateConfigFromMoodle();
+
+  createRoot(container).render(
+    <TooltipProvider>
+      <VimeoPlaylist />
+      <Toaster />
+    </TooltipProvider>
+  );
+}
+
+// Listen for Moodle config ready event or initialize immediately
+if (typeof window !== 'undefined') {
+  if ((window as any).MoodleVimeoConfig) {
+    // Config already available
+    initApp();
+  } else {
+    // Wait for config
+    window.addEventListener('moodleConfigReady', () => {
+      initApp();
+    });
+    
+    // Fallback: initialize after a short delay if no Moodle config
+    setTimeout(() => {
+      if (!(window as any).MoodleVimeoConfig) {
+        console.log('No Moodle config found, using default configuration');
+        initApp();
+      }
+    }, 1000);
+  }
+} else {
+  // Server-side or immediate initialization
+  initApp();
+}

@@ -84,6 +84,25 @@ class mod_eljwplayer_mod_form extends moodleform_mod
         $mform->addElement('text', 'video_url', get_string('video_url', 'mod_eljwplayer'), ['size' => '64']);
         $mform->setType('video_url', PARAM_URL);
 
+        // Vimeo playlist settings
+        $mform->addElement('header', 'vimeosettings', get_string('vimeosettings', 'mod_eljwplayer'));
+        
+        $mform->addElement('textarea', 'videosource', get_string('vimeourls', 'mod_eljwplayer'), 
+            ['rows' => 5, 'cols' => 60, 'placeholder' => get_string('vimeourls_placeholder', 'mod_eljwplayer')]);
+        $mform->setType('videosource', PARAM_TEXT);
+        $mform->addHelpButton('videosource', 'vimeourls', 'mod_eljwplayer');
+
+        $mform->addElement('advcheckbox', 'continuousplay', get_string('continuousplay', 'mod_eljwplayer'));
+        $mform->setDefault('continuousplay', 1);
+        $mform->addHelpButton('continuousplay', 'continuousplay', 'mod_eljwplayer');
+
+        $mform->addElement('advcheckbox', 'autoplay', get_string('autoplay', 'mod_eljwplayer'));
+        $mform->setDefault('autoplay', 1);
+        $mform->addHelpButton('autoplay', 'autoplay', 'mod_eljwplayer');
+
+        $mform->addElement('advcheckbox', 'showendscreen', get_string('showendscreen', 'mod_eljwplayer'));
+        $mform->setDefault('showendscreen', 1);
+        $mform->addHelpButton('showendscreen', 'showendscreen', 'mod_eljwplayer');
 
         // Adding the standard "intro" and "introformat" fields.
         if ($CFG->branch >= 29) {
@@ -110,17 +129,33 @@ class mod_eljwplayer_mod_form extends moodleform_mod
     public function add_completion_rules() {
         $mform = $this->_form;
 
-        $mform->addElement('checkbox', 'completionwatchvideo',
+        $group = array();
+        $group[] = $mform->createElement('checkbox', 'completionwatchvideo', '',
             get_string('completionwatchvideo', 'mod_eljwplayer'));
+        $group[] = $mform->createElement('text', 'completionwatchvideo', '', array('size' => 3));
         $mform->setType('completionwatchvideo', PARAM_INT);
-        $mform->addHelpButton('completionwatchvideo', 'completionwatchvideo', 'mod_eljwplayer');
-        $mform->setDefault('completionwatchvideo', 0);
+        $mform->addGroup($group, 'completionwatchvideogroup', 
+            get_string('completionwatchvideo', 'mod_eljwplayer'), ' ', false);
+        $mform->addHelpButton('completionwatchvideogroup', 'completionwatchvideo', 'mod_eljwplayer');
+        $mform->setDefault('completionwatchvideo', 100);
 
-        return ['completionwatchvideo'];
+        return ['completionwatchvideogroup'];
     }
 
     public function completion_rule_enabled($data) {
         return !empty($data['completionwatchvideo']);
+    }
+
+    public function data_preprocessing(&$default_values) {
+        parent::data_preprocessing($default_values);
+        
+        // Handle videosource field - convert JSON array back to newline-separated text
+        if (!empty($default_values['videosource'])) {
+            $videoUrls = json_decode($default_values['videosource'], true);
+            if (is_array($videoUrls)) {
+                $default_values['videosource'] = implode("\n", $videoUrls);
+            }
+        }
     }
 
 
@@ -134,6 +169,33 @@ class mod_eljwplayer_mod_form extends moodleform_mod
     public function validation($data, $files)
     {
         $errors = parent::validation($data, $files);
+        
+        // Validate Vimeo URLs if videosource is set to vimeo
+        if (!empty($data['videosource']) && is_string($data['videosource'])) {
+            $lines = array_filter(array_map('trim', explode("\n", $data['videosource'])));
+            foreach ($lines as $line) {
+                if (!empty($line) && !preg_match('/^https:\/\/vimeo\.com\/\d+/', $line)) {
+                    $errors['videosource'] = get_string('invalidvimeourl', 'mod_eljwplayer');
+                    break;
+                }
+            }
+        }
+        
         return $errors;
+    }
+    
+    /**
+     * Process form data before saving
+     */
+    public function get_data() {
+        $data = parent::get_data();
+        if ($data) {
+            // Convert newline-separated URLs to JSON array
+            if (!empty($data->videosource) && is_string($data->videosource)) {
+                $lines = array_filter(array_map('trim', explode("\n", $data->videosource)));
+                $data->videosource = json_encode(array_values($lines));
+            }
+        }
+        return $data;
     }
 }

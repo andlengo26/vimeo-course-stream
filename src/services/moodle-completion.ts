@@ -39,17 +39,23 @@ export class MoodleCompletionService {
     }
 
     try {
-      // Use Moodle's AMD module system to load completion module
-      const completion = await this.loadMoodleCompletion();
-      
-      if (completion && completion.mark_complete) {
-        await completion.mark_complete({
-          cmid: this.config.activityId,
-          userid: this.config.userId,
-          courseid: this.config.courseId
+      // Use Moodle's AJAX API to call external function
+      if (typeof (window as any).M?.util?.js_call_amd === 'function') {
+        const ajax = await new Promise<any>((resolve, reject) => {
+          (window as any).require(['core/ajax'], resolve, reject);
         });
         
-        console.log('Activity marked as complete in Moodle');
+        const request = {
+          methodname: 'mod_eljwplayer_track_completion',
+          args: {
+            cmid: this.config.activityId,
+            videoid: 'all',
+            completed: 1
+          }
+        };
+
+        const response = await ajax.call([request])[0];
+        console.log('Activity marked as complete in Moodle:', response);
         return true;
       }
       

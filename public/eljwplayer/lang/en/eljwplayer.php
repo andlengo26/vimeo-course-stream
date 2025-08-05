@@ -92,3 +92,16 @@ $string['completionwatchvideo_help'] = 'If enabled, the activity will only be ma
 $string['videosource'] = 'Video source';
 $string['vimeo'] = 'Vimeo';
 $string['jwplayer'] = 'JWPlayer';
+
+// Vimeo playlist settings
+$string['vimeosettings'] = 'Vimeo Playlist Settings';
+$string['vimeourls'] = 'Vimeo Video URLs';
+$string['vimeourls_help'] = 'Enter one Vimeo video URL per line. Students will watch these videos in order as a playlist.';
+$string['vimeourls_placeholder'] = "https://vimeo.com/123456789\nhttps://vimeo.com/987654321\nhttps://vimeo.com/456789123";
+$string['continuousplay'] = 'Continuous play';
+$string['continuousplay_help'] = 'Automatically advance to the next video when one finishes.';
+$string['autoplay'] = 'Autoplay';
+$string['autoplay_help'] = 'Automatically start playing videos when they load.';
+$string['showendscreen'] = 'Show completion screen';
+$string['showendscreen_help'] = 'Show a completion screen when all videos have been watched.';
+$string['completionwatchvideo_help'] = 'Student must watch a percentage of videos to complete this activity. Enter the percentage (1-100) of videos that must be watched.';

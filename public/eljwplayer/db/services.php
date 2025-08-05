@@ -31,7 +31,9 @@ $services = array(
     'mod_eljwplayer' => array(
         'functions' => array(
             'mod_eljwplayer_get_jwplayermedia',
-            'mod_eljwplayer_view_jwplayermedia'
+            'mod_eljwplayer_view_jwplayermedia',
+            'mod_eljwplayer_track_completion',
+            'mod_eljwplayer_track_progress'
         ),
         'restrictedusers' => 0,
         'enabled' => 1,
@@ -55,6 +57,24 @@ $functions = array(
         'methodname'    => 'view_jwplayermedia',
         'description'   => 'View JW PLayer media and complete the activity after finish watching the video',
         'type'          => 'read',
+        'capabilities'  => 'mod/eljwplayer:view',
+        'ajax' => true,
+    ),
+    'mod_eljwplayer_track_completion' => array(
+        'classname'     => 'mod_eljwplayer_external',
+        'classpath'     => 'mod/eljwplayer/externallib.php',
+        'methodname'    => 'track_completion',
+        'description'   => 'Track video completion for Vimeo playlist',
+        'type'          => 'write',
+        'capabilities'  => 'mod/eljwplayer:view',
+        'ajax' => true,
+    ),
+    'mod_eljwplayer_track_progress' => array(
+        'classname'     => 'mod_eljwplayer_external',
+        'classpath'     => 'mod/eljwplayer/externallib.php',
+        'methodname'    => 'track_progress',
+        'description'   => 'Track video progress for Vimeo playlist',
+        'type'          => 'write',
         'capabilities'  => 'mod/eljwplayer:view',
         'ajax' => true,
     )

@@ -42,6 +42,172 @@ require_once("$CFG->libdir/externallib.php");
 class mod_eljwplayer_external extends external_api {
 
     /**
+     * Track completion parameters
+     */
+    public static function track_completion_parameters() {
+        return new external_function_parameters([
+            'cmid' => new external_value(PARAM_INT, 'Course module ID'),
+            'videoid' => new external_value(PARAM_ALPHANUMEXT, 'Video ID', VALUE_DEFAULT, ''),
+            'completed' => new external_value(PARAM_INT, 'Completion status', VALUE_DEFAULT, 0),
+        ]);
+    }
+
+    /**
+     * Track completion implementation
+     */
+    public static function track_completion($cmid, $videoid = '', $completed = 0) {
+        global $DB, $USER;
+        require_once(dirname(__FILE__) . '/../../lib/completionlib.php');
+
+        // Validate parameters
+        $params = self::validate_parameters(self::track_completion_parameters(), [
+            'cmid' => $cmid,
+            'videoid' => $videoid,
+            'completed' => $completed
+        ]);
+
+        // Get course module and validate access
+        $cm = get_coursemodule_from_id('eljwplayer', $params['cmid'], 0, false, MUST_EXIST);
+        $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
+        $context = context_module::instance($cm->id);
+
+        // Check capabilities
+        self::validate_context($context);
+        require_capability('mod/eljwplayer:view', $context);
+
+        // Get activity instance
+        $eljwplayer = $DB->get_record('eljwplayer', ['id' => $cm->instance], '*', MUST_EXIST);
+
+        // Track individual video progress
+        if (!empty($params['videoid']) && $params['videoid'] !== 'all') {
+            $record = [
+                'eljwplayerid' => $eljwplayer->id,
+                'userid' => $USER->id,
+                'videoid' => $params['videoid'],
+                'completed' => $params['completed'],
+                'timewatched' => time(),
+                'timemodified' => time(),
+                'course' => $course->id
+            ];
+
+            // Update or insert progress record
+            $existing = $DB->get_record('eljwplayer_userprogress', [
+                'eljwplayerid' => $eljwplayer->id,
+                'userid' => $USER->id,
+                'videoid' => $params['videoid']
+            ]);
+
+            if ($existing) {
+                $record['id'] = $existing->id;
+                $DB->update_record('eljwplayer_userprogress', $record);
+            } else {
+                $DB->insert_record('eljwplayer_userprogress', $record);
+            }
+        }
+
+        // Handle activity completion
+        $completion = new completion_info($course);
+        if ($completion->is_enabled($cm)) {
+            $shouldComplete = false;
+
+            if ($params['completed'] && $params['videoid'] === 'all') {
+                $shouldComplete = true;
+            } else if ($eljwplayer->completionwatchvideo) {
+                // Check completion based on watched videos
+                if (!empty($eljwplayer->videosource)) {
+                    $videoUrls = json_decode($eljwplayer->videosource, true);
+                    if ($videoUrls && is_array($videoUrls)) {
+                        $completedCount = $DB->count_records('eljwplayer_userprogress', [
+                            'eljwplayerid' => $eljwplayer->id,
+                            'userid' => $USER->id,
+                            'completed' => 1
+                        ]);
+
+                        $totalVideos = count($videoUrls);
+                        $completionPercentage = $totalVideos > 0 ? ($completedCount / $totalVideos) * 100 : 0;
+
+                        if ($completionPercentage >= $eljwplayer->completionwatchvideo) {
+                            $shouldComplete = true;
+                        }
+                    }
+                }
+            }
+
+            if ($shouldComplete) {
+                $completion->update_state($cm, COMPLETION_COMPLETE, $USER->id);
+            }
+        }
+
+        return [
+            'status' => 'success',
+            'completed' => $params['completed'],
+            'videoid' => $params['videoid']
+        ];
+    }
+
+    /**
+     * Track completion return values
+     */
+    public static function track_completion_returns() {
+        return new external_single_structure([
+            'status' => new external_value(PARAM_TEXT, 'Status'),
+            'completed' => new external_value(PARAM_INT, 'Completion status'),
+            'videoid' => new external_value(PARAM_ALPHANUMEXT, 'Video ID')
+        ]);
+    }
+
+    /**
+     * Track progress parameters
+     */
+    public static function track_progress_parameters() {
+        return new external_function_parameters([
+            'cmid' => new external_value(PARAM_INT, 'Course module ID'),
+            'videoid' => new external_value(PARAM_ALPHANUMEXT, 'Video ID'),
+            'progress' => new external_value(PARAM_INT, 'Progress percentage', VALUE_DEFAULT, 0),
+        ]);
+    }
+
+    /**
+     * Track progress implementation
+     */
+    public static function track_progress($cmid, $videoid, $progress = 0) {
+        global $DB, $USER;
+
+        // Validate parameters
+        $params = self::validate_parameters(self::track_progress_parameters(), [
+            'cmid' => $cmid,
+            'videoid' => $videoid,
+            'progress' => $progress
+        ]);
+
+        // Get course module and validate access
+        $cm = get_coursemodule_from_id('eljwplayer', $params['cmid'], 0, false, MUST_EXIST);
+        $context = context_module::instance($cm->id);
+
+        // Check capabilities
+        self::validate_context($context);
+        require_capability('mod/eljwplayer:view', $context);
+
+        // For now, just return success - detailed progress tracking can be added later
+        return [
+            'status' => 'success',
+            'progress' => $params['progress'],
+            'videoid' => $params['videoid']
+        ];
+    }
+
+    /**
+     * Track progress return values
+     */
+    public static function track_progress_returns() {
+        return new external_single_structure([
+            'status' => new external_value(PARAM_TEXT, 'Status'),
+            'progress' => new external_value(PARAM_INT, 'Progress percentage'),
+            'videoid' => new external_value(PARAM_ALPHANUMEXT, 'Video ID')
+        ]);
+    }
+
+    /**
      * Returns description of method parameters
      *
      * @return external_function_parameters
